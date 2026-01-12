@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Controle de Aniversários</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+    <h1>🎂 Controle de Aniversários</h1>
+    <p>Cadastro e acompanhamento de aniversariantes</p>
+	<script src="script.js"></script>
+
+</header>
+
+<main>
+
+    <!-- CARD CADASTRO -->
+    <section class="card">
+        <h2>📋 Cadastro</h2>
+
+        <form id="formCadastro">
+            <label>Nome</label>
+            <input type="text" name="nome" required>
+
+            <label>Endereço</label>
+            <input type="text" name="endereco">
+
+            <label>CEP</label>
+            <input type="text" name="cep">
+
+            <label>Telefone</label>
+            <input type="tel" name="telefone">
+
+            <label>Data de Nascimento</label>
+            <input type="date" name="data_nascimento" required>
+
+            <button type="submit">Salvar</button>
+        </form>
+    </section>
+
+    <!-- CARD PESQUISA -->
+    <section class="card">
+        <h2>🔍 Pesquisar Aniversariantes</h2>
+
+        <label>Selecione uma data</label>
+        <input type="date" id="dataPesquisa">
+
+        <button>Pesquisar</button>
+
+        <div class="resultado">
+            <!-- Resultado da pesquisa -->
+        </div>
+    </section>
+
+    <!-- CARD RELATÓRIO -->
+    <section class="card">
+        <h2>📊 Aniversariantes da Semana</h2>
+
+        <button>Gerar Relatório</button>
+
+        <div class="resultado">
+            <!-- Relatório semanal -->
+        </div>
+    </section>
+
+</main>
+
+<footer>
+    <p>Sistema simples de controle de aniversários</p>
+</footer>
+
+</body>
+</html>
