@@ -1,4 +1,4 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbyKO-lVijHWeTDiL3tgiVj2E8DZvhrqIT47x8RgCEY7lrskPMz75YPsUiq5uhkHDtcv/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxtaoIlSoSTC_z7LylgHXfFwBz0bsfDpRJjzB9xrKSTtaL3F8kOoOYMFwo5Skjmys19/exec";
 
 let pessoas = [];
 
@@ -41,3 +41,4 @@ document.getElementById("formCadastro").addEventListener("submit", function (e) 
     })
     .catch(err => alert("Erro ao salvar"));
 });
+
