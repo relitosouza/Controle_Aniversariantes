@@ -137,5 +137,3 @@ function renderizarLista(lista, elementoAlvo, msgVazio) {
 
     elementoAlvo.appendChild(ul);
 }
-
-
