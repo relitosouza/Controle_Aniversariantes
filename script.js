@@ -1,7 +1,7 @@
 // =================================================================
 // CONFIGURAÇÕES
 // =================================================================
-const API_URL = "https://script.google.com/macros/s/AKfycbzk3TraZoI1QNWjzb5ZaNVSF2Kk8kOlGhQ2HoGSuvHBkRubTOj_EjM_c939Iuc5W6Zj/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyyZO4mSvDnYLXiD3EmkSuIBUIDrOBVDo0207cI4pQLzmSD4Cqliv8w65fsoIoHeEuZ/exec";
 
 let pessoas = [];
 
@@ -10,7 +10,7 @@ let pessoas = [];
 // =================================================================
 window.onload = function() {
     carregarDados();
-    // Simula clique na aba inicial
+    // Simula clique na aba inicial para carregar visual correto
     const abaInicial = document.querySelector(".tab-link");
     if(abaInicial) abaInicial.click();
 };
@@ -151,36 +151,26 @@ document.getElementById("btnEnviarEmail").addEventListener("click", function() {
 });
 
 // =================================================================
-// 5. MÁSCARA DE TELEFONE (NOVA FUNÇÃO)
+// 5. MÁSCARA DE TELEFONE
 // =================================================================
-// Seleciona o campo de telefone pelo nome "telefone"
 const inputTelefone = document.querySelector('input[name="telefone"]');
 
 if (inputTelefone) {
     inputTelefone.addEventListener('input', function (e) {
         let value = e.target.value;
-
-        // 1. Remove tudo o que não é número
         value = value.replace(/\D/g, "");
-
-        // 2. Limita a 11 dígitos (DDD + 9 números)
         if (value.length > 11) value = value.slice(0, 11);
-
-        // 3. Aplica a formatação (XX) XXXXX-XXXX
-        // Coloca parênteses em volta dos dois primeiros dígitos
         value = value.replace(/^(\d{2})(\d)/g, "($1) $2");
-        
-        // Coloca o hífen depois do quinto dígito (para celulares de 9 dígitos)
         value = value.replace(/(\d{5})(\d)/, "$1-$2");
-
-        // Atualiza o valor no campo
         e.target.value = value;
     });
 }
 
 // =================================================================
-// FUNÇÕES AUXILIARES
+// FUNÇÕES AUXILIARES (UI)
 // =================================================================
+
+// --- AQUI ESTÁ A MUDANÇA PARA EXIBIR TODOS OS DADOS ---
 function renderizarLista(lista, elementoAlvo, msgVazio) {
     elementoAlvo.innerHTML = ""; 
 
@@ -194,16 +184,33 @@ function renderizarLista(lista, elementoAlvo, msgVazio) {
     lista.forEach(p => {
         const li = document.createElement("li");
         
+        // Formatar Data
         const dataObj = new Date(p.dataNascimento);
         const dia = String(dataObj.getUTCDate()).padStart(2, '0');
         const mes = String(dataObj.getUTCMonth() + 1).padStart(2, '0');
         
+        // Prepara o texto do CEP (se existir)
+        const cepTexto = p.cep ? ` - CEP: ${p.cep}` : "";
+        const enderecoTexto = p.endereco ? p.endereco : "Endereço não informado";
+
         li.innerHTML = `
-            <div>
-                <strong>${p.nome}</strong>
-                <div style="font-size: 0.85rem; color: #666;">📞 ${p.telefone || "Sem telefone"}</div>
+            <div style="width: 100%;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                    <strong style="font-size: 1.1rem; color: #1e3a8a;">${p.nome}</strong>
+                    <span style="background: #eff6ff; color: #2563eb; padding: 3px 8px; border-radius: 12px; font-weight: bold; font-size: 0.9rem;">
+                        🎂 ${dia}/${mes}
+                    </span>
+                </div>
+                
+                <div style="margin-bottom: 3px; color: #444;">
+                    📞 ${p.telefone || "Sem telefone"}
+                </div>
+                
+                <div style="font-size: 0.9rem; color: #666; display: flex; align-items: flex-start;">
+                    <span style="margin-right: 5px;">🏠</span> 
+                    <span>${enderecoTexto}${cepTexto}</span>
+                </div>
             </div>
-            <div style="font-weight: bold; color: #2563eb;">🎂 ${dia}/${mes}</div>
         `;
         ul.appendChild(li);
     });
