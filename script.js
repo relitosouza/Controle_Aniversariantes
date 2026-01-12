@@ -76,3 +76,47 @@ document.querySelectorAll("button")[2].onclick = function () {
         : "Nenhum aniversariante esta semana.";
 };
 
+function enviarRelatorioSemanal() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Página1");
+  const dados = sheet.getDataRange().getValues();
+  dados.shift(); // remove cabeçalho
+
+  const hoje = new Date();
+  const fimSemana = new Date();
+  fimSemana.setDate(hoje.getDate() + 7);
+
+  let aniversariantes = [];
+
+  dados.forEach(linha => {
+    const nome = linha[0];
+    const dataNasc = new Date(linha[4]);
+
+    dataNasc.setFullYear(hoje.getFullYear());
+
+    if (dataNasc >= hoje && dataNasc <= fimSemana) {
+      aniversariantes.push({
+        nome,
+        data: Utilities.formatDate(dataNasc, "America/Sao_Paulo", "dd/MM")
+      });
+    }
+  });
+
+  let corpoEmail = "📅 Relatório semanal de aniversariantes\n\n";
+
+  if (aniversariantes.length === 0) {
+    corpoEmail += "Nenhum aniversariante esta semana.";
+  } else {
+    aniversariantes.forEach(p =>
+      corpoEmail += `🎂 ${p.nome} - ${p.data}\n`
+    );
+  }
+
+  MailApp.sendEmail({
+    to: EMAIL_DESTINO,
+    subject: "🎉 Aniversariantes da Semana",
+    body: corpoEmail
+  });
+}
+
+
+
