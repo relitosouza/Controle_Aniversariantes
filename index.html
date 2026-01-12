@@ -54,18 +54,25 @@
             </form>
         </section>
 
-        <section id="tab-pesquisa" class="tab-content">
-            <h2>Pesquisar por Data</h2>
-            <div class="search-box">
-                <label>Selecione o dia e mês:</label>
-                <input type="date" id="dataPesquisa">
-                <button class="btn-secondary" id="btnPesquisar">Buscar Aniversariantes</button>
-            </div>
-            <div class="resultado" id="resPesquisa">
-                <p class="placeholder-text">Os resultados aparecerão aqui...</p>
-            </div>
-        </section>
+       <section id="tab-pesquisa" class="tab-content">
+    <h2>Pesquisar Aniversariante</h2>
+    
+    <div class="form-group">
+        <label>Nome (Opcional)</label>
+        <input type="text" id="nomePesquisa" placeholder="Ex: Maria">
+    </div>
 
+    <div class="form-group">
+        <label>Data (Opcional)</label>
+        <input type="date" id="dataPesquisa">
+    </div>
+
+    <button class="btn-secondary" id="btnPesquisar" style="margin-top: 10px;">🔍 Buscar</button>
+
+    <div class="resultado" id="resPesquisa" style="margin-top: 20px;">
+        <p class="placeholder-text">Os resultados aparecerão aqui...</p>
+    </div>
+</section>
 <section id="tab-relatorio" class="tab-content">
     <h2>Próximos Aniversariantes</h2>
     <p>Veja quem faz aniversário nos próximos 7 dias.</p>
