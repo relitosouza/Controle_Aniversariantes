@@ -34,23 +34,24 @@ document.getElementById("formCadastro").addEventListener("submit", function (e) 
         dataNascimento: form.data_nascimento.value
     };
 
-    fetch(API_URL, {
+fetch(API_URL, {
         method: "POST",
-        // MUDAR DE: "Content-Type": "application/json"
-        // PARA ESTE ABAIXO:
+        
+        // --- A MUDANÇA É AQUI EMBAIXO ---
         headers: {
             "Content-Type": "text/plain;charset=utf-8"
         },
+        // --------------------------------
+        
         body: JSON.stringify(pessoa)
     })
-
     .then(res => res.json())
     .then(() => {
-        alert("Cadastro salvo com sucesso!");
+        alert("Cadastro salvo na planilha!");
         form.reset();
-        carregarDados(); // Recarrega a lista local
+        carregarDados();
     })
-    .catch(err => alert("Erro ao salvar: " + err))
+    .catch(err => alert("Erro ao salvar: " + err));
     .finally(() => {
         btn.innerText = textoOriginal;
         btn.disabled = false;
@@ -142,5 +143,6 @@ function renderizarLista(lista, elementoAlvo, msgVazio) {
 
     elementoAlvo.appendChild(ul);
 }
+
 
 
