@@ -176,3 +176,39 @@ function abrirTab(evt, tabNome) {
         evt.currentTarget.className += " active";
     }
 }
+// --- 4. FUNÇÃO DE ENVIO MANUAL DE EMAIL ---
+document.getElementById("btnEnviarEmail").addEventListener("click", function() {
+    const btn = document.getElementById("btnEnviarEmail");
+    const textoOriginal = btn.innerText;
+    
+    if(!confirm("Deseja enviar o email com os aniversariantes da PRÓXIMA semana para o administrador?")) {
+        return;
+    }
+
+    btn.innerText = "Enviando...";
+    btn.disabled = true;
+
+    // Envia um comando especial para o Google Script
+    fetch(API_URL, {
+        method: "POST",
+        headers: {
+            "Content-Type": "text/plain;charset=utf-8"
+        },
+        body: JSON.stringify({ action: "enviar_email" }) 
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === "enviado") {
+            alert(`✅ Email enviado com sucesso! (${data.qtd} aniversariantes encontrados)`);
+        } else {
+            alert("ℹ️ Nenhum aniversariante encontrado para a próxima semana (intervalo de aviso). O email não foi enviado.");
+        }
+    })
+    .catch(err => {
+        alert("Erro ao enviar email: " + err);
+    })
+    .finally(() => {
+        btn.innerText = textoOriginal;
+        btn.disabled = false;
+    });
+});
