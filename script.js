@@ -143,6 +143,28 @@ function renderizarLista(lista, elementoAlvo, msgVazio) {
 
     elementoAlvo.appendChild(ul);
 }
+/* --- FUNÇÃO DE CONTROLE DAS ABAS --- */
+function abrirTab(evt, tabNome) {
+    // 1. Esconde todo o conteúdo
+    const conteudos = document.getElementsByClassName("tab-content");
+    for (let i = 0; i < conteudos.length; i++) {
+        conteudos[i].style.display = "none";
+        conteudos[i].classList.remove("active");
+    }
+
+    // 2. Remove a classe 'active' de todos os botões
+    const tabs = document.getElementsByClassName("tab-link");
+    for (let i = 0; i < tabs.length; i++) {
+        tabs[i].className = tabs[i].className.replace(" active", "");
+    }
+
+    // 3. Mostra o conteúdo atual e adiciona classe 'active' ao botão clicado
+    document.getElementById(tabNome).style.display = "block";
+    document.getElementById(tabNome).classList.add("active");
+    
+    // Adiciona classe active no botão que foi clicado
+    evt.currentTarget.className += " active";
+}
 
 
 
