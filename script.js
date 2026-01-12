@@ -1,8 +1,6 @@
 // =================================================================
 // CONFIGURAÇÕES
 // =================================================================
-// IMPORTANTE: Se você criou uma "Nova Versão" no Apps Script, 
-// verifique se a URL mudou e atualize aqui:
 const API_URL = "https://script.google.com/macros/s/AKfycbzk3TraZoI1QNWjzb5ZaNVSF2Kk8kOlGhQ2HoGSuvHBkRubTOj_EjM_c939Iuc5W6Zj/exec";
 
 let pessoas = [];
@@ -12,10 +10,9 @@ let pessoas = [];
 // =================================================================
 window.onload = function() {
     carregarDados();
-    
-    // Define a aba de Cadastro como inicial
-    // (Simula um clique na aba para ativar a classe visual correta)
-    document.querySelector(".tab-link").click();
+    // Simula clique na aba inicial
+    const abaInicial = document.querySelector(".tab-link");
+    if(abaInicial) abaInicial.click();
 };
 
 function carregarDados() {
@@ -39,7 +36,6 @@ document.getElementById("formCadastro").addEventListener("submit", function (e) 
     const btn = form.querySelector("button");
     const textoOriginal = btn.innerText;
 
-    // Feedback visual para o usuário
     btn.innerText = "Salvando...";
     btn.disabled = true;
 
@@ -51,19 +47,16 @@ document.getElementById("formCadastro").addEventListener("submit", function (e) 
         dataNascimento: form.data_nascimento.value
     };
 
-    // TRUQUE DO TEXT/PLAIN: Evita erro de CORS (Bloqueio do navegador)
     fetch(API_URL, {
         method: "POST",
-        headers: {
-            "Content-Type": "text/plain;charset=utf-8"
-        },
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify(pessoa)
     })
     .then(res => res.json())
     .then(() => {
         alert("✅ Cadastro salvo com sucesso!");
         form.reset();
-        carregarDados(); // Atualiza a lista na memória
+        carregarDados();
     })
     .catch(err => {
         alert("Erro ao salvar: " + err);
@@ -87,14 +80,11 @@ document.getElementById("btnPesquisar").addEventListener("click", function() {
         return;
     }
 
-    // Pega o Mês e Dia do input (formato YYYY-MM-DD)
     const [ano, mes, dia] = dataInput.split("-");
     
     const encontrados = pessoas.filter(p => {
         if (!p.dataNascimento) return false;
-        // Pega apenas os 10 primeiros caracteres da data ISO vinda do Google (YYYY-MM-DD)
         const dataString = p.dataNascimento.substring(0, 10);
-        // Verifica se termina com o mesmo Mês e Dia (ignora ano)
         return dataString.endsWith(`-${mes}-${dia}`);
     });
 
@@ -110,23 +100,14 @@ document.getElementById("btnRelatorio").addEventListener("click", function() {
     const hoje = new Date();
     hoje.setHours(0,0,0,0);
     
-    // Define o limite (hoje + 7 dias)
     const dataLimite = new Date(hoje);
     dataLimite.setDate(hoje.getDate() + 7);
     dataLimite.setHours(23,59,59,999);
 
     const aniversariantes = pessoas.filter(p => {
         if (!p.dataNascimento) return false;
-        
         const dataNasc = new Date(p.dataNascimento);
-        
-        // Cria uma data de aniversário para o ANO ATUAL para comparação correta
-        // getUTCMonth é usado pois a data do Google vem em UTC
         const aniverEsteAno = new Date(hoje.getFullYear(), dataNasc.getUTCMonth(), dataNasc.getUTCDate());
-
-        // Se o niver já passou este ano (ex: foi ontem), não mostra.
-        // Se quiséssemos mostrar nivers que passaram, ajustaríamos a lógica.
-        // Aqui focamos em "Próximos 7 dias":
         return aniverEsteAno >= hoje && aniverEsteAno <= dataLimite;
     });
 
@@ -134,26 +115,22 @@ document.getElementById("btnRelatorio").addEventListener("click", function() {
 });
 
 // =================================================================
-// 4. FUNÇÃO DE EMAIL MANUAL (ACIONAR O SERVIDOR)
+// 4. FUNÇÃO DE EMAIL MANUAL
 // =================================================================
 document.getElementById("btnEnviarEmail").addEventListener("click", function() {
     const btn = document.getElementById("btnEnviarEmail");
     const textoOriginal = btn.innerText;
     
-    // Confirmação de segurança
-    if(!confirm("Deseja enviar agora o email com os aniversariantes da PRÓXIMA semana (Daqui a 7 dias)?")) {
+    if(!confirm("Deseja enviar agora o email com os aniversariantes da PRÓXIMA semana?")) {
         return;
     }
 
     btn.innerText = "Enviando...";
     btn.disabled = true;
 
-    // Envia comando "action: enviar_email"
     fetch(API_URL, {
         method: "POST",
-        headers: {
-            "Content-Type": "text/plain;charset=utf-8"
-        },
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({ action: "enviar_email" }) 
     })
     .then(res => res.json())
@@ -161,15 +138,12 @@ document.getElementById("btnEnviarEmail").addEventListener("click", function() {
         if (data.status === "enviado") {
             alert(`✅ Email enviado com sucesso!\nForam encontrados ${data.qtd} aniversariantes.`);
         } else if (data.status === "vazio") {
-            alert("ℹ️ Processo concluído, mas nenhum aniversariante foi encontrado no intervalo da próxima semana.");
+            alert("ℹ️ Nenhum aniversariante encontrado para a próxima semana.");
         } else {
-            alert("⚠️ Resposta inesperada do servidor: " + JSON.stringify(data));
+            alert("⚠️ Resposta inesperada: " + JSON.stringify(data));
         }
     })
-    .catch(err => {
-        alert("❌ Erro ao tentar enviar email: " + err);
-        console.error(err);
-    })
+    .catch(err => alert("❌ Erro: " + err))
     .finally(() => {
         btn.innerText = textoOriginal;
         btn.disabled = false;
@@ -177,12 +151,38 @@ document.getElementById("btnEnviarEmail").addEventListener("click", function() {
 });
 
 // =================================================================
-// FUNÇÕES AUXILIARES (UI e RENDERIZAÇÃO)
+// 5. MÁSCARA DE TELEFONE (NOVA FUNÇÃO)
 // =================================================================
+// Seleciona o campo de telefone pelo nome "telefone"
+const inputTelefone = document.querySelector('input[name="telefone"]');
 
-// Função para gerar o HTML da lista de pessoas
+if (inputTelefone) {
+    inputTelefone.addEventListener('input', function (e) {
+        let value = e.target.value;
+
+        // 1. Remove tudo o que não é número
+        value = value.replace(/\D/g, "");
+
+        // 2. Limita a 11 dígitos (DDD + 9 números)
+        if (value.length > 11) value = value.slice(0, 11);
+
+        // 3. Aplica a formatação (XX) XXXXX-XXXX
+        // Coloca parênteses em volta dos dois primeiros dígitos
+        value = value.replace(/^(\d{2})(\d)/g, "($1) $2");
+        
+        // Coloca o hífen depois do quinto dígito (para celulares de 9 dígitos)
+        value = value.replace(/(\d{5})(\d)/, "$1-$2");
+
+        // Atualiza o valor no campo
+        e.target.value = value;
+    });
+}
+
+// =================================================================
+// FUNÇÕES AUXILIARES
+// =================================================================
 function renderizarLista(lista, elementoAlvo, msgVazio) {
-    elementoAlvo.innerHTML = ""; // Limpa resultados anteriores
+    elementoAlvo.innerHTML = ""; 
 
     if (lista.length === 0) {
         elementoAlvo.innerHTML = `<p class="placeholder-text">${msgVazio}</p>`;
@@ -194,18 +194,16 @@ function renderizarLista(lista, elementoAlvo, msgVazio) {
     lista.forEach(p => {
         const li = document.createElement("li");
         
-        // Formatar data para dia/mês visualmente
         const dataObj = new Date(p.dataNascimento);
         const dia = String(dataObj.getUTCDate()).padStart(2, '0');
         const mes = String(dataObj.getUTCMonth() + 1).padStart(2, '0');
-        const dataFormatada = `${dia}/${mes}`;
         
         li.innerHTML = `
             <div>
                 <strong>${p.nome}</strong>
                 <div style="font-size: 0.85rem; color: #666;">📞 ${p.telefone || "Sem telefone"}</div>
             </div>
-            <div style="font-weight: bold; color: #2563eb;">🎂 ${dataFormatada}</div>
+            <div style="font-weight: bold; color: #2563eb;">🎂 ${dia}/${mes}</div>
         `;
         ul.appendChild(li);
     });
@@ -213,28 +211,22 @@ function renderizarLista(lista, elementoAlvo, msgVazio) {
     elementoAlvo.appendChild(ul);
 }
 
-// Função para trocar as abas
 function abrirTab(evt, tabNome) {
-    // 1. Esconde todo o conteúdo
     const conteudos = document.getElementsByClassName("tab-content");
     for (let i = 0; i < conteudos.length; i++) {
         conteudos[i].style.display = "none";
         conteudos[i].classList.remove("active");
     }
 
-    // 2. Remove a classe 'active' dos botões
     const tabs = document.getElementsByClassName("tab-link");
     for (let i = 0; i < tabs.length; i++) {
         tabs[i].className = tabs[i].className.replace(" active", "");
     }
 
-    // 3. Mostra o conteúdo atual
     document.getElementById(tabNome).style.display = "block";
     document.getElementById(tabNome).classList.add("active");
     
-    // 4. Ativa o botão clicado
     if (evt && evt.currentTarget) {
         evt.currentTarget.className += " active";
     }
 }
-
