@@ -1,200 +1,83 @@
-// --- CONFIGURAÇÃO ---
-// ATENÇÃO: Se você criou uma nova implantação, atualize a URL abaixo!
-const API_URL = "https://script.google.com/macros/s/AKfycbzk3TraZoI1QNWjzb5ZaNVSF2Kk8kOlGhQ2HoGSuvHBkRubTOj_EjM_c939Iuc5W6Zj/exec";
-
-let pessoas = [];
-
-// --- INICIALIZAÇÃO ---
-window.onload = function() {
-    carregarDados();
-    // Define a aba inicial padrão (caso o HTML não defina)
-    document.getElementById("tab-cadastro").style.display = "block";
-};
-
-// --- FUNÇÃO DE CARREGAMENTO DE DADOS (GET) ---
-function carregarDados() {
-    console.log("Baixando dados da planilha...");
-    fetch(API_URL)
-        .then(res => res.json())
-        .then(data => {
-            pessoas = data;
-            console.log("Dados carregados:", pessoas.length, "pessoas.");
-        })
-        .catch(err => console.error("Erro ao carregar dados", err));
-}
-
-// --- 1. FUNÇÃO DE CADASTRO (POST) ---
-document.getElementById("formCadastro").addEventListener("submit", function (e) {
-    e.preventDefault();
-
-    const form = e.target;
-    const btn = form.querySelector("button");
-    const textoOriginal = btn.innerText;
-
-    // Feedback visual
-    btn.innerText = "Salvando...";
-    btn.disabled = true;
-
-    const pessoa = {
-        nome: form.nome.value,
-        endereco: form.endereco.value,
-        cep: form.cep.value,
-        telefone: form.telefone.value,
-        dataNascimento: form.data_nascimento.value
-    };
-
-    // CORREÇÃO DE CORS: headers como text/plain
-    fetch(API_URL, {
-        method: "POST",
-        headers: {
-            "Content-Type": "text/plain;charset=utf-8"
-        },
-        body: JSON.stringify(pessoa)
-    })
-    .then(res => res.json())
-    .then(() => {
-        alert("✅ Cadastro salvo com sucesso!");
-        form.reset();
-        carregarDados(); // Atualiza a lista local
-    })
-    .catch(err => {
-        alert("Erro ao salvar: " + err);
-        console.error(err);
-    })
-    .finally(() => {
-        btn.innerText = textoOriginal;
-        btn.disabled = false;
-    });
-});
-
-// --- 2. FUNÇÃO DE PESQUISA POR DATA ---
-document.getElementById("btnPesquisar").addEventListener("click", function() {
-    const dataInput = document.getElementById("dataPesquisa").value;
-    const divResultado = document.getElementById("resPesquisa");
-    
-    if (!dataInput) {
-        alert("Por favor, selecione uma data no calendário.");
-        return;
-    }
-
-    // Pega o Mês e Dia do input (formato YYYY-MM-DD)
-    const [ano, mes, dia] = dataInput.split("-");
-    
-    const encontrados = pessoas.filter(p => {
-        if (!p.dataNascimento) return false;
-        // Pega apenas os 10 primeiros caracteres da data ISO vinda do Google (YYYY-MM-DD)
-        const dataString = p.dataNascimento.substring(0, 10);
-        return dataString.endsWith(`-${mes}-${dia}`);
-    });
-
-    renderizarLista(encontrados, divResultado, "Nenhum aniversariante encontrado nesta data.");
-});
-
-// --- 3. FUNÇÃO DE RELATÓRIO SEMANAL ---
-document.getElementById("btnRelatorio").addEventListener("click", function() {
-    const divResultado = document.getElementById("resRelatorio");
-    
-    const hoje = new Date();
-    
-    // Define o limite (hoje + 7 dias)
-    const dataLimite = new Date();
-    dataLimite.setDate(hoje.getDate() + 7);
-
-    // Zera as horas para comparar apenas as datas
-    hoje.setHours(0,0,0,0);
-    dataLimite.setHours(23,59,59,999);
-
-    const aniversariantes = pessoas.filter(p => {
-        if (!p.dataNascimento) return false;
-        
-        const dataNasc = new Date(p.dataNascimento);
-        
-        // Cria uma data de aniversário para o ANO ATUAL
-        // dataNasc.getUTCMonth() é usado pois a data vem como UTC do Google
-        const aniversarioEsteAno = new Date(hoje.getFullYear(), dataNasc.getUTCMonth(), dataNasc.getUTCDate());
-
-        return aniversarioEsteAno >= hoje && aniversarioEsteAno <= dataLimite;
-    });
-
-    renderizarLista(aniversariantes, divResultado, "Ninguém faz aniversário nos próximos 7 dias.");
-});
-
-// --- FUNÇÃO AUXILIAR: RENDERIZAR HTML ---
-function renderizarLista(lista, elementoAlvo, msgVazio) {
-    elementoAlvo.innerHTML = ""; // Limpa resultados anteriores
-
-    if (lista.length === 0) {
-        elementoAlvo.innerHTML = `<p class="placeholder-text">${msgVazio}</p>`;
-        return;
-    }
-
-    const ul = document.createElement("ul");
-
-    lista.forEach(p => {
-        const li = document.createElement("li");
-        
-        // Formatar data para dia/mês (usando UTC para evitar erro de fuso horário)
-        const dataObj = new Date(p.dataNascimento);
-        const dia = String(dataObj.getUTCDate()).padStart(2, '0');
-        const mes = String(dataObj.getUTCMonth() + 1).padStart(2, '0');
-        const dataFormatada = `${dia}/${mes}`;
-        
-        li.innerHTML = `
-            <div>
-                <strong>${p.nome}</strong>
-                <div style="font-size: 0.85rem; color: #666;">📞 ${p.telefone || "Sem telefone"}</div>
-            </div>
-            <div style="font-weight: bold; color: #2563eb;">🎂 ${dataFormatada}</div>
-        `;
-        ul.appendChild(li);
-    });
-
-    elementoAlvo.appendChild(ul);
-}
-
-// --- LÓGICA DAS ABAS (TABS) ---
-function abrirTab(evt, tabNome) {
-    // 1. Esconde todo o conteúdo das abas
-    const conteudos = document.getElementsByClassName("tab-content");
-    for (let i = 0; i < conteudos.length; i++) {
-        conteudos[i].style.display = "none";
-        conteudos[i].classList.remove("active");
-    }
-
-    // 2. Remove a classe 'active' de todos os botões
-    const tabs = document.getElementsByClassName("tab-link");
-    for (let i = 0; i < tabs.length; i++) {
-        tabs[i].className = tabs[i].className.replace(" active", "");
-    }
-
-    // 3. Mostra o conteúdo atual e ativa o botão
-    document.getElementById(tabNome).style.display = "block";
-    document.getElementById(tabNome).classList.add("active");
-    
-    // Adiciona classe active no botão clicado (se o evento existir)
-    if (evt) {
-        evt.currentTarget.className += " active";
-    }
-}
 /*********************************************************
- * FUNÇÃO DE EMAIL (CORRIGIDA COM FUSO HORÁRIO)
+ * CONFIGURAÇÕES GERAIS
+ *********************************************************/
+const SHEET_NAME = "Página1"; 
+const EMAIL_DESTINO = "ricardo.elito@gmail.com"; 
+
+/*********************************************************
+ * 1. DO GET (LER DADOS)
+ *********************************************************/
+function doGet(e) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
+  const data = sheet.getDataRange().getValues();
+  data.shift(); 
+
+  const pessoas = data.map(linha => ({
+    nome: linha[0],
+    endereco: linha[1],
+    cep: linha[2],
+    telefone: linha[3],
+    dataNascimento: linha[4]
+  }));
+
+  return ContentService.createTextOutput(JSON.stringify(pessoas))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+/*********************************************************
+ * 2. DO POST (RECEBE PEDIDOS: SALVAR OU ENVIAR EMAIL)
+ *********************************************************/
+function doPost(e) {
+  try {
+    // Tenta ler os dados. Se vier como text/plain, faz o parse manual.
+    const dados = JSON.parse(e.postData.contents);
+    
+    // --- ROTEADOR: Verifica qual é a ação ---
+    
+    // CASO 1: Pedido para enviar email
+    if (dados.action === "enviar_email") {
+      const resultado = processarEnvioEmail();
+      return ContentService.createTextOutput(JSON.stringify(resultado))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // CASO 2: Se não tem "action", assumimos que é um CADASTRO NOVO
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
+    sheet.appendRow([
+      dados.nome,
+      dados.endereco,
+      dados.cep,
+      dados.telefone,
+      dados.dataNascimento
+    ]);
+
+    return ContentService.createTextOutput(JSON.stringify({ status: "cadastro_ok" }))
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch (err) {
+    // Retorna erro para o site se algo falhar
+    return ContentService.createTextOutput(JSON.stringify({ status: "erro", msg: err.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+/*********************************************************
+ * 3. LÓGICA DE EMAIL (CORRIGIDA COM FUSO HORÁRIO)
  *********************************************************/
 function processarEnvioEmail() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
   const dados = sheet.getDataRange().getValues();
-  dados.shift(); // Remove cabeçalho
+  dados.shift(); 
 
   const hoje = new Date();
-  
-  // 1. DEFINIÇÃO DO INTERVALO (1 SEMANA ANTES)
-  // Zera as horas de "hoje" para não ter conflito de horário atual
-  hoje.setHours(0,0,0,0);
+  hoje.setHours(0,0,0,0); // Zera hora atual
 
+  // Define intervalo: Daqui a 7 dias até Daqui a 14 dias
   const dataInicio = new Date(hoje);
-  dataInicio.setDate(hoje.getDate() + 7); // Começa a buscar daqui a 7 dias
+  dataInicio.setDate(hoje.getDate() + 7); 
 
   const dataFim = new Date(hoje);
-  dataFim.setDate(hoje.getDate() + 14); // Busca até daqui a 14 dias
+  dataFim.setDate(hoje.getDate() + 14); 
 
   let aniversariantes = [];
 
@@ -207,39 +90,30 @@ function processarEnvioEmail() {
 
     const dataNasc = new Date(dataOriginal);
     
-    // --- CORREÇÃO DO FUSO HORÁRIO ---
-    // Adicionamos 12 horas para garantir que caia no meio do dia,
-    // evitando que o fuso jogue para o dia anterior (ex: dia 18 as 23h)
-    // Ou usamos UTC se a data vier pura. O método seguro é usar UTC:
-    
+    // Usa UTC para evitar bug de dia anterior
     const mes = dataNasc.getUTCMonth(); 
     const dia = dataNasc.getUTCDate();
     
-    // Cria o aniversário para o ano de referência (dataInicio)
     const aniverEsteAno = new Date(dataInicio.getFullYear(), mes, dia);
 
-    // Ajuste de virada de ano (ex: busca em Dezembro para niver em Janeiro)
+    // Ajuste de virada de ano
     if (aniverEsteAno < dataInicio && dataInicio.getMonth() === 11 && mes === 0) {
       aniverEsteAno.setFullYear(dataInicio.getFullYear() + 1);
     }
 
-    // Verifica se cai no intervalo
     if (aniverEsteAno >= dataInicio && aniverEsteAno <= dataFim) {
       aniversariantes.push({
         nome: nome,
-        telefone: telefone,
-        data: Utilities.formatDate(aniverEsteAno, "America/Sao_Paulo", "dd/MM")
+        data: Utilities.formatDate(aniverEsteAno, "America/Sao_Paulo", "dd/MM"),
+        telefone: telefone
       });
     }
   });
 
-  // Envia Email
   if (aniversariantes.length > 0) {
-    let corpo = "📅 *ALERTA DE ANIVERSARIANTES (Daqui a 1 semana)*\n\n";
-    corpo += "Prepare-se para parabenizar:\n\n";
-    
+    let corpo = "📅 *ALERTA DE ANIVERSARIANTES (Próxima Semana)*\n\n";
     aniversariantes.forEach(p => {
-      corpo += `🎂 ${p.nome} - Dia ${p.data}\n📞 ${p.telefone}\n------------------\n`;
+      corpo += `🎂 ${p.nome} - ${p.data}\n📞 ${p.telefone}\n------------------\n`;
     });
 
     MailApp.sendEmail({
