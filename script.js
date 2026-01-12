@@ -1,7 +1,7 @@
 // =================================================================
 // CONFIGURAÇÕES
 // =================================================================
-const API_URL = "https://script.google.com/macros/s/AKfycbyyZO4mSvDnYLXiD3EmkSuIBUIDrOBVDo0207cI4pQLzmSD4Cqliv8w65fsoIoHeEuZ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzk3TraZoI1QNWjzb5ZaNVSF2Kk8kOlGhQ2HoGSuvHBkRubTOj_EjM_c939Iuc5W6Zj/exec";
 
 let pessoas = [];
 
