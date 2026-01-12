@@ -10,7 +10,6 @@ let pessoas = [];
 // =================================================================
 window.onload = function() {
     carregarDados();
-    // Simula clique na aba inicial para carregar visual correto
     const abaInicial = document.querySelector(".tab-link");
     if(abaInicial) abaInicial.click();
 };
@@ -92,7 +91,7 @@ document.getElementById("btnPesquisar").addEventListener("click", function() {
 });
 
 // =================================================================
-// 3. FUNÇÃO DE RELATÓRIO (VER NA TELA)
+// 3. FUNÇÃO DE RELATÓRIO (VER NA TELA - LÓGICA PRÓXIMA SEMANA)
 // =================================================================
 document.getElementById("btnRelatorio").addEventListener("click", function() {
     const divResultado = document.getElementById("resRelatorio");
@@ -100,18 +99,40 @@ document.getElementById("btnRelatorio").addEventListener("click", function() {
     const hoje = new Date();
     hoje.setHours(0,0,0,0);
     
-    const dataLimite = new Date(hoje);
-    dataLimite.setDate(hoje.getDate() + 7);
-    dataLimite.setHours(23,59,59,999);
+    // --- LÓGICA AJUSTADA ---
+    // Início: Daqui a 7 dias (ex: Hoje 12/01 -> Início 19/01)
+    const dataInicio = new Date(hoje);
+    dataInicio.setDate(hoje.getDate() + 7);
+    
+    // Fim: Daqui a 14 dias (ex: Hoje 12/01 -> Fim 26/01)
+    const dataFim = new Date(hoje);
+    dataFim.setDate(hoje.getDate() + 14);
+    dataFim.setHours(23,59,59,999);
 
     const aniversariantes = pessoas.filter(p => {
         if (!p.dataNascimento) return false;
+        
         const dataNasc = new Date(p.dataNascimento);
-        const aniverEsteAno = new Date(hoje.getFullYear(), dataNasc.getUTCMonth(), dataNasc.getUTCDate());
-        return aniverEsteAno >= hoje && aniverEsteAno <= dataLimite;
+        
+        // Cria aniversário neste ano
+        const aniverEsteAno = new Date(dataInicio.getFullYear(), dataNasc.getUTCMonth(), dataNasc.getUTCDate());
+
+        // Ajuste para virada de ano (caso estejamos em Dezembro olhando para Janeiro)
+        if (aniverEsteAno < dataInicio && dataInicio.getMonth() === 11 && dataNasc.getUTCMonth() === 0) {
+            aniverEsteAno.setFullYear(dataInicio.getFullYear() + 1);
+        }
+
+        // Verifica intervalo: DataInicio <= Aniversario <= DataFim
+        return aniverEsteAno >= dataInicio && aniverEsteAno <= dataFim;
     });
 
-    renderizarLista(aniversariantes, divResultado, "Ninguém faz aniversário nos próximos 7 dias.");
+    // Formata a data de exibição da mensagem de erro
+    const diaIni = String(dataInicio.getDate()).padStart(2,'0');
+    const mesIni = String(dataInicio.getMonth()+1).padStart(2,'0');
+    const diaFim = String(dataFim.getDate()).padStart(2,'0');
+    const mesFim = String(dataFim.getMonth()+1).padStart(2,'0');
+
+    renderizarLista(aniversariantes, divResultado, `Ninguém faz aniversário na próxima semana (${diaIni}/${mesIni} a ${diaFim}/${mesFim}).`);
 });
 
 // =================================================================
@@ -169,8 +190,6 @@ if (inputTelefone) {
 // =================================================================
 // FUNÇÕES AUXILIARES (UI)
 // =================================================================
-
-// --- AQUI ESTÁ A MUDANÇA PARA EXIBIR TODOS OS DADOS ---
 function renderizarLista(lista, elementoAlvo, msgVazio) {
     elementoAlvo.innerHTML = ""; 
 
@@ -184,12 +203,10 @@ function renderizarLista(lista, elementoAlvo, msgVazio) {
     lista.forEach(p => {
         const li = document.createElement("li");
         
-        // Formatar Data
         const dataObj = new Date(p.dataNascimento);
         const dia = String(dataObj.getUTCDate()).padStart(2, '0');
         const mes = String(dataObj.getUTCMonth() + 1).padStart(2, '0');
         
-        // Prepara o texto do CEP (se existir)
         const cepTexto = p.cep ? ` - CEP: ${p.cep}` : "";
         const enderecoTexto = p.endereco ? p.endereco : "Endereço não informado";
 
@@ -237,4 +254,3 @@ function abrirTab(evt, tabNome) {
         evt.currentTarget.className += " active";
     }
 }
-
