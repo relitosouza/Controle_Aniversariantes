@@ -1,4 +1,4 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbyyZO4mSvDnYLXiD3EmkSuIBUIDrOBVDo0207cI4pQLzmSD4Cqliv8w65fsoIoHeEuZ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwiYYGTlenNQGATHFaS8DSmHTzA1d4lXMMUK2TvjJodhhXznJY2KY2oUjBOrmrnCu0I/exec";
 
 let pessoas = [];
 
@@ -137,3 +137,4 @@ function renderizarLista(lista, elementoAlvo, msgVazio) {
 
     elementoAlvo.appendChild(ul);
 }
+
