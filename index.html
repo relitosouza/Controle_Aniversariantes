@@ -2,74 +2,83 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Controle de Aniversários</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Aniversários</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<header>
-    <h1>🎂 Controle de Aniversários</h1>
-    <p>Cadastro e acompanhamento de aniversariantes</p>
-	<script src="script.js"></script>
+<div class="app-container">
+    <header>
+        <h1>🎂 Gestão de Aniversários</h1>
+    </header>
 
-</header>
+    <div class="tabs">
+        <button class="tab-link active" onclick="abrirTab(event, 'tab-cadastro')">📋 Cadastro</button>
+        <button class="tab-link" onclick="abrirTab(event, 'tab-pesquisa')">🔍 Pesquisar</button>
+        <button class="tab-link" onclick="abrirTab(event, 'tab-relatorio')">📊 Semana</button>
+    </div>
 
-<main>
+    <main>
+        
+        <section id="tab-cadastro" class="tab-content active">
+            <h2>Novo Aniversariante</h2>
+            <form id="formCadastro">
+                <div class="form-group">
+                    <label>Nome Completo</label>
+                    <input type="text" name="nome" placeholder="Ex: Ana Silva" required>
+                </div>
 
-    <!-- CARD CADASTRO -->
-    <section class="card">
-        <h2>📋 Cadastro</h2>
+                <div class="row">
+                    <div class="form-group">
+                        <label>Data de Nascimento</label>
+                        <input type="date" name="data_nascimento" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Telefone</label>
+                        <input type="tel" name="telefone" placeholder="(11) 99999-9999">
+                    </div>
+                </div>
 
-        <form id="formCadastro">
-            <label>Nome</label>
-            <input type="text" name="nome" required>
+                <div class="form-group">
+                    <label>Endereço</label>
+                    <input type="text" name="endereco" placeholder="Rua, Número, Bairro">
+                </div>
+                
+                <div class="form-group">
+                    <label>CEP</label>
+                    <input type="text" name="cep" placeholder="00000-000">
+                </div>
 
-            <label>Endereço</label>
-            <input type="text" name="endereco">
+                <button type="submit" class="btn-primary">Salvar Cadastro</button>
+            </form>
+        </section>
 
-            <label>CEP</label>
-            <input type="text" name="cep">
+        <section id="tab-pesquisa" class="tab-content">
+            <h2>Pesquisar por Data</h2>
+            <div class="search-box">
+                <label>Selecione o dia e mês:</label>
+                <input type="date" id="dataPesquisa">
+                <button class="btn-secondary" id="btnPesquisar">Buscar Aniversariantes</button>
+            </div>
+            <div class="resultado" id="resPesquisa">
+                <p class="placeholder-text">Os resultados aparecerão aqui...</p>
+            </div>
+        </section>
 
-            <label>Telefone</label>
-            <input type="tel" name="telefone">
+        <section id="tab-relatorio" class="tab-content">
+            <h2>Próximos Aniversariantes</h2>
+            <p>Veja quem faz aniversário nos próximos 7 dias.</p>
+            <button class="btn-secondary" id="btnRelatorio">Gerar Relatório Semanal</button>
+            
+            <div class="resultado" id="resRelatorio">
+                </div>
+        </section>
 
-            <label>Data de Nascimento</label>
-            <input type="date" name="data_nascimento" required>
+    </main>
+</div>
 
-            <button type="submit">Salvar</button>
-        </form>
-    </section>
-
-    <!-- CARD PESQUISA -->
-    <section class="card">
-        <h2>🔍 Pesquisar Aniversariantes</h2>
-
-        <label>Selecione uma data</label>
-        <input type="date" id="dataPesquisa">
-
-        <button>Pesquisar</button>
-
-        <div class="resultado">
-            <!-- Resultado da pesquisa -->
-        </div>
-    </section>
-
-    <!-- CARD RELATÓRIO -->
-    <section class="card">
-        <h2>📊 Aniversariantes da Semana</h2>
-
-        <button>Gerar Relatório</button>
-
-        <div class="resultado">
-            <!-- Relatório semanal -->
-        </div>
-    </section>
-
-</main>
-
-<footer>
-    <p>Sistema simples de controle de aniversários</p>
-</footer>
+<script src="script.js"></script>
 
 </body>
 </html>
