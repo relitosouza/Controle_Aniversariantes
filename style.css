@@ -185,3 +185,20 @@ button {
     text-align: center;
     font-style: italic;
 }
+/* Botão de Excluir */
+.btn-delete {
+    background: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fca5a5;
+    padding: 5px 10px;
+    font-size: 0.8rem;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-left: 10px;
+    transition: 0.2s;
+}
+
+.btn-delete:hover {
+    background: #dc2626;
+    color: white;
+}
