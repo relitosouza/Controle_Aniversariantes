@@ -1,39 +1,58 @@
 # 🎂 Controle de Aniversários
 
-Um sistema web leve e eficiente para gerenciamento de aniversariantes, utilizando o **Google Sheets** como banco de dados e o **Google Apps Script** como backend serverless.
+Sistema web para gestão de aniversariantes integrado ao Google Sheets.
 
-O projeto permite cadastrar pessoas, pesquisar datas, visualizar os aniversariantes da próxima semana e enviar alertas automáticos por e-mail.
+> **Status:** ✅ Finalizado | **Versão:** 1.0
 
-![Status do Projeto](https://img.shields.io/badge/Status-Finalizado-green)
+Este projeto é uma solução serverless que utiliza o **Google Sheets** como banco de dados e o **Google Apps Script** como API backend, permitindo o cadastro, consulta, exclusão e notificação automática de aniversariantes.
+
+---
 
 ## ✨ Funcionalidades
 
-- **📋 Cadastro Completo:** Salva Nome, Endereço, CEP, Telefone (com máscara automática) e Data de Nascimento.
-- **☁️ Banco de Dados em Nuvem:** Todos os dados são salvos instantaneamente em uma Planilha do Google.
-- **🔍 Pesquisa Inteligente:** Filtre aniversariantes pelo **Nome** ou pela **Data** (Dia/Mês).
-- **🗑️ Gestão de Dados:** Possibilidade de **excluir** cadastros diretamente pela interface (CRUD).
-- **📊 Relatório Semanal:** Exibe na tela quem faz aniversário nos próximos 7 dias.
-- **📧 Notificações por E-mail:**
-  - **Automática:** Envia um e-mail toda segunda-feira com a lista dos aniversariantes da semana seguinte.
-  - **Manual:** Botão para forçar o envio do e-mail de alerta a qualquer momento.
-- **📱 Interface Responsiva:** Layout moderno com navegação por abas e adaptável a celulares.
+* **Cadastro:** Salva nome, endereço, CEP, telefone e data.
+* **Gestão (CRUD):** Permite excluir registros incorretos ou antigos.
+* **Busca Híbrida:** Pesquise pelo nome, pela data ou pelos dois simultaneamente.
+* **Smart UX:** Máscara de telefone automática `(11) 99999-9999`.
+* **Relatório Semanal:** Mostra na tela os aniversariantes dos próximos 7 dias.
+* **📧 Notificações:**
+    * Envio automático de e-mail toda segunda-feira (via Trigger).
+    * Envio manual sob demanda via botão no painel.
 
-## 🛠️ Tecnologias Utilizadas
+---
 
-- **Frontend:**
-  - HTML5
-  - CSS3 (Design responsivo e clean)
-  - JavaScript (Fetch API para comunicação assíncrona)
-- **Backend / Database:**
-  - Google Apps Script (API REST)
-  - Google Sheets (Armazenamento dos dados)
+## 📂 Estrutura dos Arquivos
 
-## 📂 Estrutura do Projeto
+Aqui está a organização dos arquivos principais do projeto:
 
-```bash
-/
-├── index.html      # Estrutura e abas da aplicação
-├── style.css       # Estilização visual
-├── script.js       # Lógica do frontend e conexão com API
-└── README.md       # Documentação
+* **`index.html`**
+    * Contém a estrutura da página, formulários e navegação por abas.
+* **`style.css`**
+    * Define o design moderno, cores, cards e responsividade (mobile-first).
+* **`script.js`**
+    * Contém toda a lógica do cliente:
+        * Conexão com a API do Google (Fetch).
+        * Lógica de filtros e datas.
+        * Máscaras de input e alertas.
 
+---
+
+## 🚀 Guia de Instalação e Configuração
+
+Siga estes 4 passos para colocar o sistema no ar.
+
+### 1. Configurar a Planilha (Banco de Dados)
+1. Crie uma nova **Planilha do Google**.
+2. Renomeie a aba (lá embaixo) para: `Página1`.
+3. Na primeira linha (**A1 até F1**), crie exatamente estes cabeçalhos:
+
+| A | B | C | D | E | F |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Nome** | **Endereço** | **CEP** | **Telefone** | **Data de Nascimento** | **ID** |
+
+### 2. Configurar o Backend (Apps Script)
+1. Na planilha, clique no menu **Extensões** > **Apps Script**.
+2. Apague qualquer código que estiver lá e cole o código do arquivo `.gs` deste projeto.
+3. No topo do código, altere o e-mail de destino:
+   ```javascript
+   const EMAIL_DESTINO = "seu.email@exemplo.com";
