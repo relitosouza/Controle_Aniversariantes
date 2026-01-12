@@ -36,9 +36,14 @@ document.getElementById("formCadastro").addEventListener("submit", function (e) 
 
     fetch(API_URL, {
         method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" }, // Ajuste para evitar preflight CORS em alguns casos
+        // MUDAR DE: "Content-Type": "application/json"
+        // PARA ESTE ABAIXO:
+        headers: {
+            "Content-Type": "text/plain;charset=utf-8"
+        },
         body: JSON.stringify(pessoa)
     })
+
     .then(res => res.json())
     .then(() => {
         alert("Cadastro salvo com sucesso!");
@@ -137,3 +142,4 @@ function renderizarLista(lista, elementoAlvo, msgVazio) {
 
     elementoAlvo.appendChild(ul);
 }
+
