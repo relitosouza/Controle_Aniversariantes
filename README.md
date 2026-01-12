@@ -37,7 +37,7 @@ O projeto permite cadastrar pessoas, pesquisar datas, visualizar os aniversarian
 ├── script.js       # Lógica do frontend e conexão com API
 └── README.md       # Documentação
 
-## 🚀 Como Configurar (Passo a Passo)
+### 🚀 Como Configurar (Passo a Passo)
 Para rodar este projeto, você precisará configurar o backend no Google.
 
 1. Preparar a Planilha
