@@ -68,30 +68,52 @@ document.getElementById("formCadastro").addEventListener("submit", function (e) 
 });
 
 // =================================================================
-// 2. FUNÇÃO DE PESQUISA (POR DATA)
+// 2. FUNÇÃO DE PESQUISA (NOME E/OU DATA) - ATUALIZADO
 // =================================================================
 document.getElementById("btnPesquisar").addEventListener("click", function() {
+    const nomeInput = document.getElementById("nomePesquisa").value.trim().toLowerCase();
     const dataInput = document.getElementById("dataPesquisa").value;
     const divResultado = document.getElementById("resPesquisa");
     
-    if (!dataInput) {
-        alert("Por favor, selecione um dia e mês no calendário.");
+    // Validação: Precisa preencher pelo menos um dos campos
+    if (!nomeInput && !dataInput) {
+        alert("Por favor, digite um nome OU selecione uma data.");
         return;
     }
 
-    const [ano, mes, dia] = dataInput.split("-");
+    let dia = "", mes = "";
+    if (dataInput) {
+        const partes = dataInput.split("-");
+        mes = partes[1];
+        dia = partes[2];
+    }
     
     const encontrados = pessoas.filter(p => {
         if (!p.dataNascimento) return false;
-        const dataString = p.dataNascimento.substring(0, 10);
-        return dataString.endsWith(`-${mes}-${dia}`);
+
+        let bateuNome = true;
+        let bateuData = true;
+
+        // 1. Se digitou nome, verifica se contém o texto (ignorando maiúsculas/minúsculas)
+        if (nomeInput) {
+            bateuNome = p.nome.toLowerCase().includes(nomeInput);
+        }
+
+        // 2. Se selecionou data, verifica dia e mês
+        if (dataInput) {
+            const dataString = p.dataNascimento.substring(0, 10);
+            bateuData = dataString.endsWith(`-${mes}-${dia}`);
+        }
+
+        // Retorna verdadeiro apenas se passar nos dois testes (se o campo estiver vazio, o teste é true automaticamente)
+        return bateuNome && bateuData;
     });
 
-    renderizarLista(encontrados, divResultado, "Nenhum aniversariante encontrado nesta data.");
+    renderizarLista(encontrados, divResultado, "Nenhum resultado encontrado para sua busca.");
 });
 
 // =================================================================
-// 3. FUNÇÃO DE RELATÓRIO (VER NA TELA - LÓGICA PRÓXIMA SEMANA)
+// 3. FUNÇÃO DE RELATÓRIO (VER NA TELA)
 // =================================================================
 document.getElementById("btnRelatorio").addEventListener("click", function() {
     const divResultado = document.getElementById("resRelatorio");
@@ -99,12 +121,11 @@ document.getElementById("btnRelatorio").addEventListener("click", function() {
     const hoje = new Date();
     hoje.setHours(0,0,0,0);
     
-    // --- LÓGICA AJUSTADA ---
-    // Início: Daqui a 7 dias (ex: Hoje 12/01 -> Início 19/01)
+    // Início: Daqui a 7 dias
     const dataInicio = new Date(hoje);
     dataInicio.setDate(hoje.getDate() + 7);
     
-    // Fim: Daqui a 14 dias (ex: Hoje 12/01 -> Fim 26/01)
+    // Fim: Daqui a 14 dias
     const dataFim = new Date(hoje);
     dataFim.setDate(hoje.getDate() + 14);
     dataFim.setHours(23,59,59,999);
@@ -113,20 +134,15 @@ document.getElementById("btnRelatorio").addEventListener("click", function() {
         if (!p.dataNascimento) return false;
         
         const dataNasc = new Date(p.dataNascimento);
-        
-        // Cria aniversário neste ano
         const aniverEsteAno = new Date(dataInicio.getFullYear(), dataNasc.getUTCMonth(), dataNasc.getUTCDate());
 
-        // Ajuste para virada de ano (caso estejamos em Dezembro olhando para Janeiro)
         if (aniverEsteAno < dataInicio && dataInicio.getMonth() === 11 && dataNasc.getUTCMonth() === 0) {
             aniverEsteAno.setFullYear(dataInicio.getFullYear() + 1);
         }
 
-        // Verifica intervalo: DataInicio <= Aniversario <= DataFim
         return aniverEsteAno >= dataInicio && aniverEsteAno <= dataFim;
     });
 
-    // Formata a data de exibição da mensagem de erro
     const diaIni = String(dataInicio.getDate()).padStart(2,'0');
     const mesIni = String(dataInicio.getMonth()+1).padStart(2,'0');
     const diaFim = String(dataFim.getDate()).padStart(2,'0');
@@ -188,7 +204,7 @@ if (inputTelefone) {
 }
 
 // =================================================================
-// FUNÇÕES AUXILIARES (UI)
+// FUNÇÕES AUXILIARES
 // =================================================================
 function renderizarLista(lista, elementoAlvo, msgVazio) {
     elementoAlvo.innerHTML = ""; 
