@@ -1,4 +1,4 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbyKO-lVijHWeTDiL3tgiVj2E8DZvhrqIT47x8RgCEY7lrskPMz75YPsUiq5uhkHDtcv/exec";
+const API_URL = https://script.google.com/macros/s/AKfycbyKO-lVijHWeTDiL3tgiVj2E8DZvhrqIT47x8RgCEY7lrskPMz75YPsUiq5uhkHDtcv/exec;
 
 let pessoas = [];
 
@@ -75,3 +75,4 @@ document.querySelectorAll("button")[2].onclick = function () {
         ? semana.map(p => `🎂 ${p.nome}`).join("<br>")
         : "Nenhum aniversariante esta semana.";
 };
+
