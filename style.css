@@ -1,18 +1,17 @@
 :root {
-    --primary: #6366f1;       /* Indigo Neon */
-    --primary-dark: #4f46e5;
-    --primary-light: #312e81; /* Fundo escuro para botões secondary */
-    --accent: #10b981;        
-    --accent-dark: #059669;
+    --primary: #f43f5e;       /* Rose */
+    --primary-dark: #e11d48;
+    --primary-light: #fff1f2;
+    --accent: #14b8a6;        /* Teal/Turquesa */
+    --accent-dark: #0d9488;
     
-    /* MUDANÇA RADICAL NO FUNDO */
-    --bg-body: #0f172a;       /* Azul quase preto */
-    --bg-card: #1e293b;       /* Cinza azulado escuro */
-    --text-main: #f8fafc;     /* Texto quase branco */
-    --text-muted: #94a3b8;    /* Texto cinza claro */
-    --border: #334155;        /* Bordas sutis */
-    --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
-    --radius: 16px;
+    --bg-body: #fff1f2;       /* Fundo levemente rosado */
+    --bg-card: #ffffff;
+    --text-main: #4c0519;     /* Texto vinho escuro */
+    --text-muted: #9f1239;
+    --border: #fecdd3;
+    --shadow: 0 10px 15px -3px rgba(244, 63, 94, 0.1);
+    --radius: 24px; /* Bordas mais redondas */
 }
 
 * {
@@ -360,6 +359,7 @@ footer {
     font-size: 0.8rem;
     color: var(--text-muted);
 }
+
 
 
 
