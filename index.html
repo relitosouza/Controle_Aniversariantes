@@ -2,90 +2,169 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestão de Aniversários</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Aniversários App</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div class="app-container">
+<div class="mobile-wrapper">
+    
     <header>
-        <h1>🎂 Gestão de Aniversários</h1>
+        <div class="header-content">
+            <div class="icon-bg">
+                <i class="ph-fill ph-cake"></i>
+            </div>
+            <div>
+                <h1>Parabéns!</h1>
+                <p>Gerenciador de Aniversários</p>
+            </div>
+        </div>
     </header>
 
-    <div class="tabs">
-        <button class="tab-link active" onclick="abrirTab(event, 'tab-cadastro')">📋 Cadastro</button>
-        <button class="tab-link" onclick="abrirTab(event, 'tab-pesquisa')">🔍 Pesquisar</button>
-        <button class="tab-link" onclick="abrirTab(event, 'tab-relatorio')">📊 Semana</button>
-    </div>
-
-    <main>
+    <main class="main-card">
         
-        <section id="tab-cadastro" class="tab-content active">
-            <h2>Novo Aniversariante</h2>
-            <form id="formCadastro">
-                <div class="form-group">
-                    <label>Nome Completo</label>
-                    <input type="text" name="nome" placeholder="Ex: Ana Silva" required>
-                </div>
+        <nav class="tabs-container">
+            <button class="tab-link active" onclick="abrirTab(event, 'tab-cadastro')">
+                <i class="ph ph-plus-circle"></i>
+                <span>Novo</span>
+            </button>
+            <button class="tab-link" onclick="abrirTab(event, 'tab-pesquisa')">
+                <i class="ph ph-magnifying-glass"></i>
+                <span>Buscar</span>
+            </button>
+            <button class="tab-link" onclick="abrirTab(event, 'tab-relatorio')">
+                <i class="ph ph-calendar-check"></i>
+                <span>Semana</span>
+            </button>
+        </nav>
 
-                <div class="row">
-                    <div class="form-group">
-                        <label>Data de Nascimento</label>
-                        <input type="date" name="data_nascimento" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Telefone</label>
-                      <input type="tel" name="telefone" placeholder="(11) 99999-9999" maxlength="15">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>Endereço</label>
-                    <input type="text" name="endereco" placeholder="Rua, Número, Bairro">
+        <div class="content-area">
+            
+            <section id="tab-cadastro" class="tab-content active">
+                <div class="section-header">
+                    <h2>Novo Cadastro</h2>
+                    <p>Preencha os dados do aniversariante.</p>
                 </div>
                 
-                <div class="form-group">
-                    <label>CEP</label>
-                    <input type="text" name="cep" placeholder="00000-000">
+                <form id="formCadastro">
+                    <div class="input-group">
+                        <label>Nome Completo</label>
+                        <div class="input-wrapper">
+                            <i class="ph ph-user"></i>
+                            <input type="text" name="nome" placeholder="Ex: Ana Silva" required>
+                        </div>
+                    </div>
+
+                    <div class="row-2">
+                        <div class="input-group">
+                            <label>Nascimento</label>
+                            <div class="input-wrapper">
+                                <input type="date" name="data_nascimento" required>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>Telefone</label>
+                            <div class="input-wrapper">
+                                <i class="ph ph-whatsapp-logo"></i>
+                                <input type="tel" name="telefone" placeholder="(00) 00000-0000" maxlength="15">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Endereço</label>
+                        <div class="input-wrapper">
+                            <i class="ph ph-map-pin"></i>
+                            <input type="text" name="endereco" placeholder="Rua, Número, Bairro">
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>CEP</label>
+                        <div class="input-wrapper">
+                            <i class="ph ph-navigation-arrow"></i>
+                            <input type="text" name="cep" placeholder="00000-000">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary">
+                        <i class="ph-bold ph-check"></i> Salvar Cadastro
+                    </button>
+                </form>
+            </section>
+
+            <section id="tab-pesquisa" class="tab-content">
+                <div class="section-header">
+                    <h2>Encontrar Pessoas</h2>
+                    <p>Busque por nome ou data específica.</p>
                 </div>
 
-                <button type="submit" class="btn-primary">Salvar Cadastro</button>
-            </form>
-        </section>
+                <div class="search-box">
+                    <div class="input-group">
+                        <label>Nome</label>
+                        <div class="input-wrapper">
+                            <i class="ph ph-magnifying-glass"></i>
+                            <input type="text" id="nomePesquisa" placeholder="Digite um nome...">
+                        </div>
+                    </div>
+                    
+                    <div class="divider"><span>OU</span></div>
 
-       <section id="tab-pesquisa" class="tab-content">
-    <h2>Pesquisar Aniversariante</h2>
-    
-    <div class="form-group">
-        <label>Nome (Opcional)</label>
-        <input type="text" id="nomePesquisa" placeholder="Ex: Maria">
-    </div>
+                    <div class="input-group">
+                        <label>Data</label>
+                        <div class="input-wrapper">
+                            <input type="date" id="dataPesquisa">
+                        </div>
+                    </div>
 
-    <div class="form-group">
-        <label>Data (Opcional)</label>
-        <input type="date" id="dataPesquisa">
-    </div>
+                    <button class="btn-secondary" id="btnPesquisar">
+                        Buscar Agora
+                    </button>
+                </div>
+                
+                <div class="resultado-container" id="resPesquisa">
+                    <div class="empty-state">
+                        <i class="ph-duotone ph-magnifying-glass"></i>
+                        <p>Os resultados aparecerão aqui.</p>
+                    </div>
+                </div>
+            </section>
 
-    <button class="btn-secondary" id="btnPesquisar" style="margin-top: 10px;">🔍 Buscar</button>
+            <section id="tab-relatorio" class="tab-content">
+                <div class="section-header">
+                    <h2>Próxima Semana</h2>
+                    <p>Quem vai apagar as velinhas em breve?</p>
+                </div>
 
-    <div class="resultado" id="resPesquisa" style="margin-top: 20px;">
-        <p class="placeholder-text">Os resultados aparecerão aqui...</p>
-    </div>
-</section>
-<section id="tab-relatorio" class="tab-content">
-    <h2>Próximos Aniversariantes</h2>
-    <p>Veja quem faz aniversário nos próximos 7 dias.</p>
-    
-    <button class="btn-secondary" id="btnRelatorio">Ver na Tela</button>
-    
-    <button class="btn-primary" id="btnEnviarEmail" style="margin-top: 10px; background-color: #059669;">📧 Enviar Aviso por Email Agora</button>
-    
-    <div class="resultado" id="resRelatorio"></div>
-</section>
+                <div class="actions-row">
+                    <button class="btn-secondary" id="btnRelatorio">
+                        <i class="ph ph-arrows-clockwise"></i> Atualizar Tela
+                    </button>
+                    <button class="btn-accent" id="btnEnviarEmail">
+                        <i class="ph ph-envelope-simple"></i> Enviar Email
+                    </button>
+                </div>
+                
+                <div class="resultado-container" id="resRelatorio">
+                    </div>
+            </section>
 
+        </div>
     </main>
+
+    <footer>
+        <p>Desenvolvido com <i class="ph-fill ph-heart" style="color: #ef4444;"></i> e Café</p>
+    </footer>
 </div>
 
 <script src="script.js"></script>
