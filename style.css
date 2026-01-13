@@ -10,8 +10,8 @@
     --text-main: #1f2937;
     --text-muted: #6b7280;
     --border: #e5e7eb;
-    --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    --radius: 16px;
+    --shadow: 0 10px 25px -5px rgba(124, 58, 237, 0.15), 0 8px 10px -6px rgba(124, 58, 237, 0.1);
+    --radius: 20px;
 }
 
 * {
@@ -359,4 +359,5 @@ footer {
     font-size: 0.8rem;
     color: var(--text-muted);
 }
+
 
