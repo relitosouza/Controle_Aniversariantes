@@ -43,7 +43,7 @@ body {
 
 /* --- HEADER --- */
 header {
-    background: linear-gradient(135deg, #7c3aed 0%, #db2777 100%));
+    background: linear-gradient(135deg, #7c3aed 0%, #db2777 100%);
     color: white;
     padding: 40px 20px 80px 20px; /* Padding extra embaixo para o card subir */
     border-bottom-left-radius: 30px;
@@ -359,6 +359,7 @@ footer {
     font-size: 0.8rem;
     color: var(--text-muted);
 }
+
 
 
 
