@@ -1,6 +1,7 @@
 // =================================================================
 // CONFIGURAÇÕES
 // =================================================================
+// ✅ URL ATUALIZADA (Funcional)
 const API_URL = "https://script.google.com/macros/s/AKfycbzk3TraZoI1QNWjzb5ZaNVSF2Kk8kOlGhQ2HoGSuvHBkRubTOj_EjM_c939Iuc5W6Zj/exec";
 
 let pessoas = [];
@@ -21,12 +22,20 @@ function carregarDados() {
         .then(data => {
             pessoas = data;
             console.log("✅ Dados carregados:", pessoas.length);
-            // Atualiza a tela se estiver na aba de relatório ou pesquisa
+            // Atualiza a tela se estiver na aba de relatório ou pesquisa para não mostrar dados velhos
             if(document.getElementById("resRelatorio").innerHTML !== "") {
                document.getElementById("btnRelatorio").click();
             }
         })
-        .catch(err => console.error("❌ Erro", err));
+        .catch(err => {
+            console.error("❌ Erro", err);
+            // Tenta usar o SweetAlert se estiver carregado, senão usa alert normal
+            if (typeof Swal !== 'undefined') {
+                Swal.fire('Erro de Conexão', 'Não foi possível carregar os dados. Verifique sua internet.', 'error');
+            } else {
+                console.warn("SweetAlert não carregado.");
+            }
+        });
 }
 
 // =================================================================
@@ -56,11 +65,16 @@ document.getElementById("formCadastro").addEventListener("submit", function (e) 
     })
     .then(res => res.json())
     .then(() => {
-        alert("✅ Cadastro salvo!");
+        Swal.fire({
+            title: 'Sucesso!',
+            text: 'Aniversariante cadastrado com sucesso.',
+            icon: 'success',
+            confirmButtonColor: '#2563eb'
+        });
         form.reset();
         carregarDados();
     })
-    .catch(err => alert("Erro: " + err))
+    .catch(err => Swal.fire('Erro', 'Erro ao salvar: ' + err, 'error'))
     .finally(() => {
         btn.innerText = textoOriginal;
         btn.disabled = false;
@@ -68,35 +82,46 @@ document.getElementById("formCadastro").addEventListener("submit", function (e) 
 });
 
 // =================================================================
-// 2. EXCLUIR (DELETE) - NOVA FUNÇÃO
+// 2. EXCLUIR (DELETE) - COM CONFIRMAÇÃO BONITA
 // =================================================================
 function excluirPessoa(id, nome) {
-    if (!confirm(`Tem certeza que deseja excluir ${nome}?`)) return;
-
-    // Feedback visual (opcional: mudar cursor)
-    document.body.style.cursor = "wait";
-
-    fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ action: "excluir", id: id })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.status === "excluido") {
-            alert("🗑️ Cadastro excluído com sucesso!");
-            carregarDados(); // Recarrega a lista
+    Swal.fire({
+        title: `Excluir ${nome}?`,
+        text: "Essa ação não pode ser desfeita!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sim, excluir',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
             
-            // Limpa as telas de resultado para não mostrar dados velhos
-            document.getElementById("resPesquisa").innerHTML = "";
-            document.getElementById("resRelatorio").innerHTML = "";
-        } else {
-            alert("Erro ao excluir: " + JSON.stringify(data));
+            // Mostra loading
+            Swal.fire({
+                title: 'Excluindo...',
+                didOpen: () => { Swal.showLoading() }
+            });
+
+            fetch(API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify({ action: "excluir", id: id })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "excluido") {
+                    Swal.fire('Excluído!', 'O registro foi apagado.', 'success');
+                    carregarDados(); 
+                    // Limpa resultados visuais antigos
+                    document.getElementById("resPesquisa").innerHTML = "";
+                    document.getElementById("resRelatorio").innerHTML = "";
+                } else {
+                    Swal.fire('Erro', 'Não foi possível excluir. Tente recarregar a página.', 'error');
+                }
+            })
+            .catch(err => Swal.fire('Erro', 'Erro de conexão: ' + err, 'error'));
         }
-    })
-    .catch(err => alert("Erro de conexão: " + err))
-    .finally(() => {
-        document.body.style.cursor = "default";
     });
 }
 
@@ -109,7 +134,7 @@ document.getElementById("btnPesquisar").addEventListener("click", function() {
     const divResultado = document.getElementById("resPesquisa");
     
     if (!nomeInput && !dataInput) {
-        alert("Digite um nome ou data.");
+        Swal.fire('Atenção', 'Digite um nome ou selecione uma data para pesquisar.', 'warning');
         return;
     }
 
@@ -132,16 +157,17 @@ document.getElementById("btnPesquisar").addEventListener("click", function() {
         return bateuNome && bateuData;
     });
 
-    renderizarLista(encontrados, divResultado, "Nenhum resultado.");
+    renderizarLista(encontrados, divResultado, "Nenhum resultado encontrado.");
 });
 
 // =================================================================
-// 4. RELATÓRIO
+// 4. RELATÓRIO SEMANAL
 // =================================================================
 document.getElementById("btnRelatorio").addEventListener("click", function() {
     const divResultado = document.getElementById("resRelatorio");
     const hoje = new Date(); hoje.setHours(0,0,0,0);
     
+    // Define intervalo: Próxima semana (Hoje+7 até Hoje+14)
     const dataInicio = new Date(hoje); dataInicio.setDate(hoje.getDate() + 7);
     const dataFim = new Date(hoje); dataFim.setDate(hoje.getDate() + 14); dataFim.setHours(23,59,59,999);
 
@@ -149,13 +175,20 @@ document.getElementById("btnRelatorio").addEventListener("click", function() {
         if (!p.dataNascimento) return false;
         const dataNasc = new Date(p.dataNascimento);
         const aniverEsteAno = new Date(dataInicio.getFullYear(), dataNasc.getUTCMonth(), dataNasc.getUTCDate());
+        
+        // Ajuste virada de ano
         if (aniverEsteAno < dataInicio && dataInicio.getMonth() === 11 && dataNasc.getUTCMonth() === 0) {
             aniverEsteAno.setFullYear(dataInicio.getFullYear() + 1);
         }
         return aniverEsteAno >= dataInicio && aniverEsteAno <= dataFim;
     });
 
-    renderizarLista(aniversariantes, divResultado, "Ninguém na próxima semana.");
+    const diaIni = String(dataInicio.getDate()).padStart(2,'0');
+    const mesIni = String(dataInicio.getMonth()+1).padStart(2,'0');
+    const diaFim = String(dataFim.getDate()).padStart(2,'0');
+    const mesFim = String(dataFim.getMonth()+1).padStart(2,'0');
+
+    renderizarLista(aniversariantes, divResultado, `Ninguém faz aniversário na próxima semana (${diaIni}/${mesIni} a ${diaFim}/${mesFim}).`);
 });
 
 // =================================================================
@@ -163,19 +196,48 @@ document.getElementById("btnRelatorio").addEventListener("click", function() {
 // =================================================================
 document.getElementById("btnEnviarEmail").addEventListener("click", function() {
     const btn = document.getElementById("btnEnviarEmail");
-    if(!confirm("Enviar email da PRÓXIMA semana?")) return;
     
-    btn.innerText = "Enviando..."; btn.disabled = true;
+    Swal.fire({
+        title: 'Enviar e-mail?',
+        text: "Deseja enviar o aviso dos aniversariantes da PRÓXIMA semana agora?",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#059669',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Sim, enviar!',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            btn.innerText = "Enviando..."; 
+            btn.disabled = true;
 
-    fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ action: "enviar_email" }) 
-    })
-    .then(res => res.json())
-    .then(data => alert(data.status === "enviado" ? `✅ Enviado! (${data.qtd})` : "ℹ️ Ninguém encontrado."))
-    .catch(err => alert("Erro: " + err))
-    .finally(() => { btn.innerText = "📧 Enviar Aviso por Email Agora"; btn.disabled = false; });
+            Swal.fire({
+                title: 'Enviando...',
+                didOpen: () => { Swal.showLoading() }
+            });
+
+            fetch(API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify({ action: "enviar_email" }) 
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "enviado") {
+                    Swal.fire('Sucesso!', `E-mail enviado para ${data.qtd} aniversariantes.`, 'success');
+                } else if (data.status === "vazio") {
+                    Swal.fire('Informação', 'Nenhum aniversariante encontrado para a próxima semana.', 'info');
+                } else {
+                    Swal.fire('Ops', 'Resposta inesperada do servidor.', 'warning');
+                }
+            })
+            .catch(err => Swal.fire('Erro', 'Erro ao enviar: ' + err, 'error'))
+            .finally(() => { 
+                btn.innerText = "📧 Enviar Aviso por Email Agora"; 
+                btn.disabled = false; 
+            });
+        }
+    });
 });
 
 // =================================================================
@@ -205,8 +267,7 @@ function renderizarLista(lista, elementoAlvo, msgVazio) {
         const mes = String(dataObj.getUTCMonth() + 1).padStart(2, '0');
         const cepTexto = p.cep ? ` - CEP: ${p.cep}` : "";
         
-        // --- AQUI ESTÁ A MUDANÇA: BOTÃO DE EXCLUIR ---
-        // Adicionamos um botão que chama a função excluirPessoa com o ID
+        // Botão de Excluir
         const btnDelete = `<button class="btn-delete" onclick="excluirPessoa('${p.id}', '${p.nome}')">🗑️ Excluir</button>`;
 
         li.innerHTML = `
