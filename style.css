@@ -1,17 +1,19 @@
 :root {
-    --primary: #f43f5e;       /* Rose */
-    --primary-dark: #e11d48;
-    --primary-light: #fff1f2;
-    --accent: #14b8a6;        /* Teal/Turquesa */
-    --accent-dark: #0d9488;
+    /* Gradiente vibrante */
+    --primary: #7c3aed;       /* Roxo Violeta */
+    --primary-dark: #6d28d9;
+    --primary-light: #f3e8ff;
+    --accent: #db2777;        /* Rosa Pink */
+    --accent-dark: #be185d;
     
-    --bg-body: #fff1f2;       /* Fundo levemente rosado */
+    /* O resto mantém igual... */
+    --bg-body: #f3f4f6;
     --bg-card: #ffffff;
-    --text-main: #4c0519;     /* Texto vinho escuro */
-    --text-muted: #9f1239;
-    --border: #fecdd3;
-    --shadow: 0 10px 15px -3px rgba(244, 63, 94, 0.1);
-    --radius: 24px; /* Bordas mais redondas */
+    --text-main: #1f2937;
+    --text-muted: #6b7280;
+    --border: #e5e7eb;
+    --shadow: 0 10px 25px -5px rgba(124, 58, 237, 0.15), 0 8px 10px -6px rgba(124, 58, 237, 0.1);
+    --radius: 20px;
 }
 
 * {
@@ -359,6 +361,7 @@ footer {
     font-size: 0.8rem;
     color: var(--text-muted);
 }
+
 
 
 
