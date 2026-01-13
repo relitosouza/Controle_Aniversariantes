@@ -1,8 +1,8 @@
 // =================================================================
 // CONFIGURAÇÕES
 // =================================================================
-// ✅ URL DA SUA API (ATUALIZADA)
 const API_URL = "https://script.google.com/macros/s/AKfycbzk3TraZoI1QNWjzb5ZaNVSF2Kk8kOlGhQ2HoGSuvHBkRubTOj_EjM_c939Iuc5W6Zj/exec";
+const CACHE_KEY = "niver_app_cache_v1"; // Chave para salvar no navegador
 
 let pessoas = [];
 
@@ -10,53 +10,75 @@ let pessoas = [];
 // INICIALIZAÇÃO
 // =================================================================
 window.onload = function() {
-    carregarDados();
+    // 1. Tenta carregar do cache imediatamente (instantâneo)
+    carregarDoCache();
+    
+    // 2. Busca dados atualizados da nuvem (segundo plano)
+    carregarDaAPI();
+
+    // Seleciona aba inicial visualmente
     const abaInicial = document.querySelector(".tab-link");
     if(abaInicial) abaInicial.click();
 };
 
-function carregarDados() {
-    console.log("🔄 Baixando dados...");
+// --- FUNÇÃO 1: Carregar do Cache (Instantâneo) ---
+function carregarDoCache() {
+    const cache = localStorage.getItem(CACHE_KEY);
+    if (cache) {
+        pessoas = JSON.parse(cache);
+        console.log("📦 Dados carregados do Cache:", pessoas.length);
+        atualizarTelas(); // Mostra na tela na hora
+    }
+}
+
+// --- FUNÇÃO 2: Carregar da API (Dados Frescos) ---
+function carregarDaAPI() {
+    console.log("☁️ Buscando atualizações na nuvem...");
+    
+    // Mostra um pequeno indicador de carregamento no canto (opcional)
+    const btnRefresh = document.getElementById("btnRelatorio");
+    if(btnRefresh && btnRefresh.innerText === "Gerar Relatório Semanal") btnRefresh.innerText = "Atualizando...";
+
     fetch(API_URL)
         .then(res => res.json())
         .then(data => {
-            
-            // --- 📅 AQUI ESTÁ A MÁGICA DA ORDENAÇÃO ---
-            // Ordena a lista de Janeiro (0) a Dezembro (11)
+            // ORDENAÇÃO (Janeiro a Dezembro)
             pessoas = data.sort((a, b) => {
                 if (!a.dataNascimento || !b.dataNascimento) return 0;
-                
-                const dataA = new Date(a.dataNascimento);
-                const dataB = new Date(b.dataNascimento);
-
-                // 1. Compara os Meses (usando UTC para evitar erro de fuso)
-                const mesA = dataA.getUTCMonth();
-                const mesB = dataB.getUTCMonth();
-                
-                if (mesA !== mesB) {
-                    return mesA - mesB; // Se meses forem diferentes, ordena pelo mês
-                }
-
-                // 2. Se o mês for igual, compara os Dias
-                const diaA = dataA.getUTCDate();
-                const diaB = dataB.getUTCDate();
-                return diaA - diaB;
+                const dA = new Date(a.dataNascimento);
+                const dB = new Date(b.dataNascimento);
+                // Compara mês, se igual compara dia
+                return (dA.getUTCMonth() - dB.getUTCMonth()) || (dA.getUTCDate() - dB.getUTCDate());
             });
-            // ---------------------------------------------
 
-            console.log("✅ Dados carregados e ordenados:", pessoas.length);
+            console.log("✅ Dados da nuvem recebidos:", pessoas.length);
             
-            // Atualiza a tela se estiver na aba de relatório ou pesquisa
-            if(document.getElementById("resRelatorio").innerHTML !== "") {
-               document.getElementById("btnRelatorio").click();
-            }
+            // SALVA NO CACHE (Para a próxima vez ser rápido)
+            localStorage.setItem(CACHE_KEY, JSON.stringify(pessoas));
+            
+            atualizarTelas(); // Atualiza a interface com os dados novos
         })
         .catch(err => {
-            console.error("❌ Erro", err);
-            if (typeof Swal !== 'undefined') {
-                Swal.fire('Erro de Conexão', 'Não foi possível carregar os dados.', 'error');
+            console.error("❌ Erro de conexão", err);
+            // Se não tiver cache e der erro, avisa. Se tiver cache, o usuário nem percebe.
+            if (pessoas.length === 0 && typeof Swal !== 'undefined') {
+                Swal.fire('Offline', 'Não foi possível baixar os dados e não há cache salvo.', 'warning');
             }
+        })
+        .finally(() => {
+             if(btnRefresh && btnRefresh.innerText === "Atualizando...") btnRefresh.innerText = "Gerar Relatório Semanal";
         });
+}
+
+// Função auxiliar para atualizar a tela onde o usuário estiver
+function atualizarTelas() {
+    // Se o usuário estiver na aba Relatório e já tiver algo na tela, atualiza ela
+    const divRelatorio = document.getElementById("resRelatorio");
+    if(divRelatorio && divRelatorio.innerHTML !== "" && !divRelatorio.innerHTML.includes("placeholder-text")) {
+         document.getElementById("btnRelatorio").click();
+    }
+    
+    // Se estiver pesquisando, refaz a pesquisa (opcional, aqui mantemos estático para não pular layout)
 }
 
 // =================================================================
@@ -88,12 +110,12 @@ document.getElementById("formCadastro").addEventListener("submit", function (e) 
     .then(() => {
         Swal.fire({
             title: 'Sucesso!',
-            text: 'Aniversariante cadastrado com sucesso.',
+            text: 'Aniversariante cadastrado!',
             icon: 'success',
             confirmButtonColor: '#2563eb'
         });
         form.reset();
-        carregarDados();
+        carregarDaAPI(); // Força atualização da nuvem + cache
     })
     .catch(err => Swal.fire('Erro', 'Erro ao salvar: ' + err, 'error'))
     .finally(() => {
@@ -117,10 +139,7 @@ function excluirPessoa(id, nome) {
         cancelButtonText: 'Cancelar'
     }).then((result) => {
         if (result.isConfirmed) {
-            Swal.fire({
-                title: 'Excluindo...',
-                didOpen: () => { Swal.showLoading() }
-            });
+            Swal.fire({ title: 'Excluindo...', didOpen: () => { Swal.showLoading() } });
 
             fetch(API_URL, {
                 method: "POST",
@@ -131,14 +150,18 @@ function excluirPessoa(id, nome) {
             .then(data => {
                 if (data.status === "excluido") {
                     Swal.fire('Excluído!', 'O registro foi apagado.', 'success');
-                    carregarDados(); 
-                    document.getElementById("resPesquisa").innerHTML = "";
-                    document.getElementById("resRelatorio").innerHTML = "";
+                    
+                    // Remove localmente antes de baixar da rede (UX instantânea)
+                    pessoas = pessoas.filter(p => p.id !== id);
+                    localStorage.setItem(CACHE_KEY, JSON.stringify(pessoas));
+                    document.getElementById("resPesquisa").innerHTML = ""; // Limpa pesquisa
+                    
+                    carregarDaAPI(); // Sincroniza garantia
                 } else {
                     Swal.fire('Erro', 'Não foi possível excluir.', 'error');
                 }
             })
-            .catch(err => Swal.fire('Erro', 'Erro de conexão: ' + err, 'error'));
+            .catch(err => Swal.fire('Erro', 'Erro de conexão.', 'error'));
         }
     });
 }
@@ -151,11 +174,10 @@ document.getElementById("btnPesquisar").addEventListener("click", function() {
     const dataInput = document.getElementById("dataPesquisa").value;
     const divResultado = document.getElementById("resPesquisa");
     
-    // Se não digitar nada, mostra TODOS (agora ordenados!)
-    // Isso é útil para ver a lista completa de Jan a Dez
     if (!nomeInput && !dataInput) {
+        // Se vazio, mostra lista completa (lida do cache/memória)
         renderizarLista(pessoas, divResultado, "Nenhum cadastro encontrado.");
-        return; 
+        return;
     }
 
     let dia = "", mes = "";
@@ -201,12 +223,10 @@ document.getElementById("btnRelatorio").addEventListener("click", function() {
         return aniverEsteAno >= dataInicio && aniverEsteAno <= dataFim;
     });
 
-    // Ordena o relatório por proximidade de data (opcional, pois a lista global já ajuda)
+    // Ordenação extra para garantir ordem de dias da semana
     aniversariantes.sort((a,b) => {
-        const dA = new Date(a.dataNascimento); 
-        const dB = new Date(b.dataNascimento);
-        // Lógica simples para ordenar dias próximos
-        return (dA.getUTCMonth() - dB.getUTCMonth()) || (dA.getUTCDate() - dB.getUTCDate());
+         const dA = new Date(a.dataNascimento); const dB = new Date(b.dataNascimento);
+         return (dA.getUTCMonth() - dB.getUTCMonth()) || (dA.getUTCDate() - dB.getUTCDate());
     });
 
     const diaIni = String(dataInicio.getDate()).padStart(2,'0');
@@ -225,13 +245,12 @@ document.getElementById("btnEnviarEmail").addEventListener("click", function() {
     
     Swal.fire({
         title: 'Enviar e-mail?',
-        text: "Deseja enviar o aviso dos aniversariantes da PRÓXIMA semana agora?",
+        text: "Disparar aviso da PRÓXIMA semana?",
         icon: 'question',
         showCancelButton: true,
         confirmButtonColor: '#059669',
         cancelButtonColor: '#d33',
-        confirmButtonText: 'Sim, enviar!',
-        cancelButtonText: 'Cancelar'
+        confirmButtonText: 'Sim, enviar'
     }).then((result) => {
         if (result.isConfirmed) {
             btn.innerText = "Enviando..."; btn.disabled = true;
@@ -244,15 +263,11 @@ document.getElementById("btnEnviarEmail").addEventListener("click", function() {
             })
             .then(res => res.json())
             .then(data => {
-                if (data.status === "enviado") {
-                    Swal.fire('Sucesso!', `E-mail enviado para ${data.qtd} aniversariantes.`, 'success');
-                } else if (data.status === "vazio") {
-                    Swal.fire('Informação', 'Nenhum aniversariante encontrado para a próxima semana.', 'info');
-                } else {
-                    Swal.fire('Ops', 'Resposta inesperada do servidor.', 'warning');
-                }
+                if (data.status === "enviado") Swal.fire('Sucesso!', `Enviado para ${data.qtd} pessoas.`, 'success');
+                else if (data.status === "vazio") Swal.fire('Vazio', 'Sem aniversariantes na próxima semana.', 'info');
+                else Swal.fire('Erro', 'Resposta desconhecida.', 'warning');
             })
-            .catch(err => Swal.fire('Erro', 'Erro ao enviar: ' + err, 'error'))
+            .catch(err => Swal.fire('Erro', 'Falha na conexão.', 'error'))
             .finally(() => { btn.innerText = "📧 Enviar Aviso por Email Agora"; btn.disabled = false; });
         }
     });
