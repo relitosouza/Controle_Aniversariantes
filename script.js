@@ -1,7 +1,7 @@
 // =================================================================
 // CONFIGURAÇÕES
 // =================================================================
-// ✅ URL ATUALIZADA (Funcional)
+// ✅ URL DA SUA API (ATUALIZADA)
 const API_URL = "https://script.google.com/macros/s/AKfycbzk3TraZoI1QNWjzb5ZaNVSF2Kk8kOlGhQ2HoGSuvHBkRubTOj_EjM_c939Iuc5W6Zj/exec";
 
 let pessoas = [];
@@ -20,20 +20,41 @@ function carregarDados() {
     fetch(API_URL)
         .then(res => res.json())
         .then(data => {
-            pessoas = data;
-            console.log("✅ Dados carregados:", pessoas.length);
-            // Atualiza a tela se estiver na aba de relatório ou pesquisa para não mostrar dados velhos
+            
+            // --- 📅 AQUI ESTÁ A MÁGICA DA ORDENAÇÃO ---
+            // Ordena a lista de Janeiro (0) a Dezembro (11)
+            pessoas = data.sort((a, b) => {
+                if (!a.dataNascimento || !b.dataNascimento) return 0;
+                
+                const dataA = new Date(a.dataNascimento);
+                const dataB = new Date(b.dataNascimento);
+
+                // 1. Compara os Meses (usando UTC para evitar erro de fuso)
+                const mesA = dataA.getUTCMonth();
+                const mesB = dataB.getUTCMonth();
+                
+                if (mesA !== mesB) {
+                    return mesA - mesB; // Se meses forem diferentes, ordena pelo mês
+                }
+
+                // 2. Se o mês for igual, compara os Dias
+                const diaA = dataA.getUTCDate();
+                const diaB = dataB.getUTCDate();
+                return diaA - diaB;
+            });
+            // ---------------------------------------------
+
+            console.log("✅ Dados carregados e ordenados:", pessoas.length);
+            
+            // Atualiza a tela se estiver na aba de relatório ou pesquisa
             if(document.getElementById("resRelatorio").innerHTML !== "") {
                document.getElementById("btnRelatorio").click();
             }
         })
         .catch(err => {
             console.error("❌ Erro", err);
-            // Tenta usar o SweetAlert se estiver carregado, senão usa alert normal
             if (typeof Swal !== 'undefined') {
-                Swal.fire('Erro de Conexão', 'Não foi possível carregar os dados. Verifique sua internet.', 'error');
-            } else {
-                console.warn("SweetAlert não carregado.");
+                Swal.fire('Erro de Conexão', 'Não foi possível carregar os dados.', 'error');
             }
         });
 }
@@ -82,7 +103,7 @@ document.getElementById("formCadastro").addEventListener("submit", function (e) 
 });
 
 // =================================================================
-// 2. EXCLUIR (DELETE) - COM CONFIRMAÇÃO BONITA
+// 2. EXCLUIR (DELETE)
 // =================================================================
 function excluirPessoa(id, nome) {
     Swal.fire({
@@ -96,8 +117,6 @@ function excluirPessoa(id, nome) {
         cancelButtonText: 'Cancelar'
     }).then((result) => {
         if (result.isConfirmed) {
-            
-            // Mostra loading
             Swal.fire({
                 title: 'Excluindo...',
                 didOpen: () => { Swal.showLoading() }
@@ -113,11 +132,10 @@ function excluirPessoa(id, nome) {
                 if (data.status === "excluido") {
                     Swal.fire('Excluído!', 'O registro foi apagado.', 'success');
                     carregarDados(); 
-                    // Limpa resultados visuais antigos
                     document.getElementById("resPesquisa").innerHTML = "";
                     document.getElementById("resRelatorio").innerHTML = "";
                 } else {
-                    Swal.fire('Erro', 'Não foi possível excluir. Tente recarregar a página.', 'error');
+                    Swal.fire('Erro', 'Não foi possível excluir.', 'error');
                 }
             })
             .catch(err => Swal.fire('Erro', 'Erro de conexão: ' + err, 'error'));
@@ -133,9 +151,11 @@ document.getElementById("btnPesquisar").addEventListener("click", function() {
     const dataInput = document.getElementById("dataPesquisa").value;
     const divResultado = document.getElementById("resPesquisa");
     
+    // Se não digitar nada, mostra TODOS (agora ordenados!)
+    // Isso é útil para ver a lista completa de Jan a Dez
     if (!nomeInput && !dataInput) {
-        Swal.fire('Atenção', 'Digite um nome ou selecione uma data para pesquisar.', 'warning');
-        return;
+        renderizarLista(pessoas, divResultado, "Nenhum cadastro encontrado.");
+        return; 
     }
 
     let dia = "", mes = "";
@@ -167,7 +187,6 @@ document.getElementById("btnRelatorio").addEventListener("click", function() {
     const divResultado = document.getElementById("resRelatorio");
     const hoje = new Date(); hoje.setHours(0,0,0,0);
     
-    // Define intervalo: Próxima semana (Hoje+7 até Hoje+14)
     const dataInicio = new Date(hoje); dataInicio.setDate(hoje.getDate() + 7);
     const dataFim = new Date(hoje); dataFim.setDate(hoje.getDate() + 14); dataFim.setHours(23,59,59,999);
 
@@ -176,11 +195,18 @@ document.getElementById("btnRelatorio").addEventListener("click", function() {
         const dataNasc = new Date(p.dataNascimento);
         const aniverEsteAno = new Date(dataInicio.getFullYear(), dataNasc.getUTCMonth(), dataNasc.getUTCDate());
         
-        // Ajuste virada de ano
         if (aniverEsteAno < dataInicio && dataInicio.getMonth() === 11 && dataNasc.getUTCMonth() === 0) {
             aniverEsteAno.setFullYear(dataInicio.getFullYear() + 1);
         }
         return aniverEsteAno >= dataInicio && aniverEsteAno <= dataFim;
+    });
+
+    // Ordena o relatório por proximidade de data (opcional, pois a lista global já ajuda)
+    aniversariantes.sort((a,b) => {
+        const dA = new Date(a.dataNascimento); 
+        const dB = new Date(b.dataNascimento);
+        // Lógica simples para ordenar dias próximos
+        return (dA.getUTCMonth() - dB.getUTCMonth()) || (dA.getUTCDate() - dB.getUTCDate());
     });
 
     const diaIni = String(dataInicio.getDate()).padStart(2,'0');
@@ -208,13 +234,8 @@ document.getElementById("btnEnviarEmail").addEventListener("click", function() {
         cancelButtonText: 'Cancelar'
     }).then((result) => {
         if (result.isConfirmed) {
-            btn.innerText = "Enviando..."; 
-            btn.disabled = true;
-
-            Swal.fire({
-                title: 'Enviando...',
-                didOpen: () => { Swal.showLoading() }
-            });
+            btn.innerText = "Enviando..."; btn.disabled = true;
+            Swal.fire({ title: 'Enviando...', didOpen: () => { Swal.showLoading() } });
 
             fetch(API_URL, {
                 method: "POST",
@@ -232,10 +253,7 @@ document.getElementById("btnEnviarEmail").addEventListener("click", function() {
                 }
             })
             .catch(err => Swal.fire('Erro', 'Erro ao enviar: ' + err, 'error'))
-            .finally(() => { 
-                btn.innerText = "📧 Enviar Aviso por Email Agora"; 
-                btn.disabled = false; 
-            });
+            .finally(() => { btn.innerText = "📧 Enviar Aviso por Email Agora"; btn.disabled = false; });
         }
     });
 });
@@ -267,7 +285,6 @@ function renderizarLista(lista, elementoAlvo, msgVazio) {
         const mes = String(dataObj.getUTCMonth() + 1).padStart(2, '0');
         const cepTexto = p.cep ? ` - CEP: ${p.cep}` : "";
         
-        // Botão de Excluir
         const btnDelete = `<button class="btn-delete" onclick="excluirPessoa('${p.id}', '${p.nome}')">🗑️ Excluir</button>`;
 
         li.innerHTML = `
