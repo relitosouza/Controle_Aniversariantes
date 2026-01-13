@@ -2,7 +2,6 @@
 // CONFIGURAÇÕES
 // =================================================================
 const API_URL = "https://script.google.com/macros/s/AKfycbzk3TraZoI1QNWjzb5ZaNVSF2Kk8kOlGhQ2HoGSuvHBkRubTOj_EjM_c939Iuc5W6Zj/exec";
-const CACHE_KEY = "niver_app_cache_v1"; // Chave para salvar no navegador
 
 let pessoas = [];
 
@@ -10,75 +9,65 @@ let pessoas = [];
 // INICIALIZAÇÃO
 // =================================================================
 window.onload = function() {
-    // 1. Tenta carregar do cache imediatamente (instantâneo)
-    carregarDoCache();
+    carregarDados(); // Busca direto da nuvem
     
-    // 2. Busca dados atualizados da nuvem (segundo plano)
-    carregarDaAPI();
-
     // Seleciona aba inicial visualmente
     const abaInicial = document.querySelector(".tab-link");
     if(abaInicial) abaInicial.click();
 };
 
-// --- FUNÇÃO 1: Carregar do Cache (Instantâneo) ---
-function carregarDoCache() {
-    const cache = localStorage.getItem(CACHE_KEY);
-    if (cache) {
-        pessoas = JSON.parse(cache);
-        console.log("📦 Dados carregados do Cache:", pessoas.length);
-        atualizarTelas(); // Mostra na tela na hora
-    }
-}
-
-// --- FUNÇÃO 2: Carregar da API (Dados Frescos) ---
-function carregarDaAPI() {
-    console.log("☁️ Buscando atualizações na nuvem...");
+// --- FUNÇÃO PRINCIPAL: Carregar da API ---
+function carregarDados() {
+    console.log("☁️ Buscando dados atualizados...");
     
-    // Mostra um pequeno indicador de carregamento no canto (opcional)
+    // Feedback visual no botão de atualizar (se existir)
     const btnRefresh = document.getElementById("btnRelatorio");
-    if(btnRefresh && btnRefresh.innerText === "Gerar Relatório Semanal") btnRefresh.innerText = "Atualizando...";
+    if(btnRefresh) {
+        if(btnRefresh.innerText.includes("Atualizar")) btnRefresh.innerText = "Carregando...";
+    }
 
     fetch(API_URL)
         .then(res => res.json())
         .then(data => {
-            // ORDENAÇÃO (Janeiro a Dezembro)
+            // ORDENAÇÃO CRONOLÓGICA (Janeiro a Dezembro)
             pessoas = data.sort((a, b) => {
                 if (!a.dataNascimento || !b.dataNascimento) return 0;
-                const dA = new Date(a.dataNascimento);
-                const dB = new Date(b.dataNascimento);
-                // Compara mês, se igual compara dia
-                return (dA.getUTCMonth() - dB.getUTCMonth()) || (dA.getUTCDate() - dB.getUTCDate());
+                
+                // Converte para data segura
+                // (Usamos UTC ou split para garantir a ordem correta independente do ano)
+                const partesA = a.dataNascimento.split('T')[0].split('-');
+                const partesB = b.dataNascimento.split('T')[0].split('-');
+                
+                const mesA = parseInt(partesA[1]);
+                const diaA = parseInt(partesA[2]);
+                const mesB = parseInt(partesB[1]);
+                const diaB = parseInt(partesB[2]);
+
+                // Compara Mês primeiro, depois Dia
+                if (mesA !== mesB) return mesA - mesB;
+                return diaA - diaB;
             });
 
-            console.log("✅ Dados da nuvem recebidos:", pessoas.length);
+            console.log("✅ Dados recebidos:", pessoas.length);
             
-            // SALVA NO CACHE (Para a próxima vez ser rápido)
-            localStorage.setItem(CACHE_KEY, JSON.stringify(pessoas));
-            
-            atualizarTelas(); // Atualiza a interface com os dados novos
+            // Se estiver com a aba de relatório aberta, atualiza ela automaticamente
+            const divRelatorio = document.getElementById("resRelatorio");
+            if(divRelatorio && divRelatorio.innerHTML !== "" && !divRelatorio.innerHTML.includes("placeholder-text")) {
+                 document.getElementById("btnRelatorio").click();
+            }
         })
         .catch(err => {
             console.error("❌ Erro de conexão", err);
-            // Se não tiver cache e der erro, avisa. Se tiver cache, o usuário nem percebe.
-            if (pessoas.length === 0 && typeof Swal !== 'undefined') {
-                Swal.fire('Offline', 'Não foi possível baixar os dados e não há cache salvo.', 'warning');
+            if (typeof Swal !== 'undefined') {
+                Swal.fire('Erro', 'Não foi possível carregar a lista. Verifique sua internet.', 'error');
             }
         })
         .finally(() => {
-             if(btnRefresh && btnRefresh.innerText === "Atualizando...") btnRefresh.innerText = "Gerar Relatório Semanal";
+             // Restaura texto do botão
+             if(btnRefresh && btnRefresh.innerText === "Carregando...") {
+                 btnRefresh.innerHTML = '<i class="ph ph-arrows-clockwise"></i> Atualizar Tela';
+             }
         });
-}
-
-// Função auxiliar para atualizar a tela onde o usuário estiver
-function atualizarTelas() {
-    // Se o usuário estiver na aba Relatório e já tiver algo na tela, atualiza ela
-    const divRelatorio = document.getElementById("resRelatorio");
-    if(divRelatorio && divRelatorio.innerHTML !== "" && !divRelatorio.innerHTML.includes("placeholder-text")) {
-         document.getElementById("btnRelatorio").click();
-    }
-    
-    // Se estiver pesquisando, refaz a pesquisa (opcional, aqui mantemos estático para não pular layout)
 }
 
 // =================================================================
@@ -88,7 +77,7 @@ document.getElementById("formCadastro").addEventListener("submit", function (e) 
     e.preventDefault();
     const form = e.target;
     const btn = form.querySelector("button");
-    const textoOriginal = btn.innerText;
+    const textoOriginal = btn.innerHTML;
 
     btn.innerText = "Salvando...";
     btn.disabled = true;
@@ -110,16 +99,16 @@ document.getElementById("formCadastro").addEventListener("submit", function (e) 
     .then(() => {
         Swal.fire({
             title: 'Sucesso!',
-            text: 'Aniversariante cadastrado!',
+            text: 'Aniversariante salvo!',
             icon: 'success',
-            confirmButtonColor: '#2563eb'
+            confirmButtonColor: '#7c3aed'
         });
         form.reset();
-        carregarDaAPI(); // Força atualização da nuvem + cache
+        carregarDados(); // Recarrega a lista oficial
     })
     .catch(err => Swal.fire('Erro', 'Erro ao salvar: ' + err, 'error'))
     .finally(() => {
-        btn.innerText = textoOriginal;
+        btn.innerHTML = textoOriginal;
         btn.disabled = false;
     });
 });
@@ -133,13 +122,13 @@ function excluirPessoa(id, nome) {
         text: "Essa ação não pode ser desfeita!",
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#6b7280',
         confirmButtonText: 'Sim, excluir',
         cancelButtonText: 'Cancelar'
     }).then((result) => {
         if (result.isConfirmed) {
-            Swal.fire({ title: 'Excluindo...', didOpen: () => { Swal.showLoading() } });
+            Swal.fire({ title: 'Aguarde...', didOpen: () => { Swal.showLoading() } });
 
             fetch(API_URL, {
                 method: "POST",
@@ -151,12 +140,11 @@ function excluirPessoa(id, nome) {
                 if (data.status === "excluido") {
                     Swal.fire('Excluído!', 'O registro foi apagado.', 'success');
                     
-                    // Remove localmente antes de baixar da rede (UX instantânea)
-                    pessoas = pessoas.filter(p => p.id !== id);
-                    localStorage.setItem(CACHE_KEY, JSON.stringify(pessoas));
-                    document.getElementById("resPesquisa").innerHTML = ""; // Limpa pesquisa
+                    // Limpa telas para não mostrar dados velhos
+                    document.getElementById("resPesquisa").innerHTML = `<div class="empty-state"><i class="ph-duotone ph-magnifying-glass"></i><p>Pesquise novamente para atualizar.</p></div>`;
+                    document.getElementById("resRelatorio").innerHTML = "";
                     
-                    carregarDaAPI(); // Sincroniza garantia
+                    carregarDados(); // Busca lista nova
                 } else {
                     Swal.fire('Erro', 'Não foi possível excluir.', 'error');
                 }
@@ -174,8 +162,8 @@ document.getElementById("btnPesquisar").addEventListener("click", function() {
     const dataInput = document.getElementById("dataPesquisa").value;
     const divResultado = document.getElementById("resPesquisa");
     
+    // Se vazio, mostra todos (ordenados)
     if (!nomeInput && !dataInput) {
-        // Se vazio, mostra lista completa (lida do cache/memória)
         renderizarLista(pessoas, divResultado, "Nenhum cadastro encontrado.");
         return;
     }
@@ -203,87 +191,76 @@ document.getElementById("btnPesquisar").addEventListener("click", function() {
 });
 
 // =================================================================
-// 4. RELATÓRIO SEMANAL (COM LIMPEZA AUTOMÁTICA)
+// 4. RELATÓRIO SEMANAL (COM PERÍODO VISÍVEL)
 // =================================================================
 document.getElementById("btnRelatorio").addEventListener("click", function() {
     const divResultado = document.getElementById("resRelatorio");
     
-    // 1. LIMPEZA TOTAL ANTES DE COMEÇAR (O Segredo para não duplicar)
-    divResultado.innerHTML = ""; 
-    divResultado.style.opacity = "0"; // Efeito visual de recarregar
-
+    // Limpa visualmente antes de começar
+    divResultado.innerHTML = "";
+    
     const hoje = new Date(); 
     hoje.setHours(0,0,0,0);
     
-    // --- DEFINIÇÃO DO PERÍODO (PRÓXIMA SEMANA) ---
-    // Começa a contar daqui a 7 dias
+    // INTERVALO: Daqui a 7 dias -> até -> Daqui a 14 dias
     const dataInicio = new Date(hoje); 
     dataInicio.setDate(hoje.getDate() + 7);
     dataInicio.setHours(0,0,0,0);
     
-    // Termina daqui a 14 dias
     const dataFim = new Date(hoje); 
     dataFim.setDate(hoje.getDate() + 14); 
     dataFim.setHours(23,59,59,999);
 
-    // Filtra a lista
     const aniversariantes = pessoas.filter(p => {
         if (!p.dataNascimento) return false;
         
-        // Pega dia e mês da data original sem sofrer com fuso horário
+        // Parse manual da data para evitar fuso horário
         const partes = p.dataNascimento.split('T')[0].split('-');
-        const mesNasc = parseInt(partes[1]) - 1; // Mês 0-11
+        const mesNasc = parseInt(partes[1]) - 1; 
         const diaNasc = parseInt(partes[2]);
         
-        // Cria aniversário neste ano
         const aniverEsteAno = new Date(dataInicio.getFullYear(), mesNasc, diaNasc);
-        aniverEsteAno.setHours(12,0,0,0); // Meio dia para segurança
+        aniverEsteAno.setHours(12,0,0,0); 
 
-        // Ajuste de Ano Novo (Se estamos em Dez e o niver é Jan)
+        // Ajuste virada de ano
         if (aniverEsteAno < dataInicio && dataInicio.getMonth() === 11 && mesNasc === 0) {
             aniverEsteAno.setFullYear(dataInicio.getFullYear() + 1);
         }
 
-        // A Lógica Chave: Só entra se for MAIOR ou IGUAL ao inicio E MENOR ou IGUAL ao fim
         return aniverEsteAno >= dataInicio && aniverEsteAno <= dataFim;
     });
 
-    // Ordena por dia
+    // Ordenação interna do relatório
     aniversariantes.sort((a,b) => {
          const dA = new Date(a.dataNascimento); 
          const dB = new Date(b.dataNascimento);
          return (dA.getUTCMonth() - dB.getUTCMonth()) || (dA.getUTCDate() - dB.getUTCDate());
     });
 
-    // Formata datas para o título
+    // Texto do Período
     const diaIni = String(dataInicio.getDate()).padStart(2,'0');
     const mesIni = String(dataInicio.getMonth()+1).padStart(2,'0');
     const diaFim = String(dataFim.getDate()).padStart(2,'0');
     const mesFim = String(dataFim.getMonth()+1).padStart(2,'0');
 
-    // --- MONTAGEM DA TELA ---
-    
-    // Mostra o período exato (para você conferir se está certo)
+    // Cria o aviso do período
     const periodoDiv = document.createElement("div");
     periodoDiv.style.marginBottom = "15px";
     periodoDiv.style.padding = "10px";
-    periodoDiv.style.background = "#eef2ff"; // Fundo roxo bem claro
-    periodoDiv.style.borderRadius = "10px";
+    periodoDiv.style.background = "#eef2ff";
+    periodoDiv.style.borderRadius = "12px";
     periodoDiv.style.textAlign = "center";
-    periodoDiv.style.color = "#4f46e5"; // Texto roxo
+    periodoDiv.style.color = "#4f46e5";
     periodoDiv.style.fontSize = "0.9rem";
     periodoDiv.style.fontWeight = "600";
     periodoDiv.style.border = "1px solid #e0e7ff";
-    periodoDiv.innerHTML = `📅 Buscando de <strong>${diaIni}/${mesIni}</strong> até <strong>${diaFim}/${mesFim}</strong>`;
+    periodoDiv.innerHTML = `📅 Próxima semana: <strong>${diaIni}/${mesIni}</strong> a <strong>${diaFim}/${mesFim}</strong>`;
     
     divResultado.appendChild(periodoDiv);
 
-    // Renderiza a lista ou aviso de vazio
-    renderizarLista(aniversariantes, divResultado, "Nenhum aniversariante encontrado neste período exato.");
-
-    // Fade In suave
-    setTimeout(() => divResultado.style.opacity = "1", 100);
+    renderizarLista(aniversariantes, divResultado, "Ninguém faz aniversário neste período.");
 });
+
 // =================================================================
 // 5. EMAIL MANUAL
 // =================================================================
@@ -292,15 +269,15 @@ document.getElementById("btnEnviarEmail").addEventListener("click", function() {
     
     Swal.fire({
         title: 'Enviar e-mail?',
-        text: "Disparar aviso da PRÓXIMA semana?",
+        text: "Disparar aviso da PRÓXIMA semana agora?",
         icon: 'question',
         showCancelButton: true,
-        confirmButtonColor: '#059669',
-        cancelButtonColor: '#d33',
+        confirmButtonColor: '#10b981',
+        cancelButtonColor: '#ef4444',
         confirmButtonText: 'Sim, enviar'
     }).then((result) => {
         if (result.isConfirmed) {
-            btn.innerText = "Enviando..."; btn.disabled = true;
+            btn.disabled = true;
             Swal.fire({ title: 'Enviando...', didOpen: () => { Swal.showLoading() } });
 
             fetch(API_URL, {
@@ -315,7 +292,7 @@ document.getElementById("btnEnviarEmail").addEventListener("click", function() {
                 else Swal.fire('Erro', 'Resposta desconhecida.', 'warning');
             })
             .catch(err => Swal.fire('Erro', 'Falha na conexão.', 'error'))
-            .finally(() => { btn.innerText = "📧 Enviar Aviso por Email Agora"; btn.disabled = false; });
+            .finally(() => { btn.disabled = false; });
         }
     });
 });
@@ -333,35 +310,59 @@ if (inputTelefone) {
 }
 
 function renderizarLista(lista, elementoAlvo, msgVazio) {
-    elementoAlvo.innerHTML = ""; 
+    // Se já tiver o aviso de período, não apaga ele, só adiciona a lista depois
+    const avisoPeriodo = elementoAlvo.querySelector("div[style*='background']");
+    
+    if (avisoPeriodo) {
+        // Remove tudo que NÃO é o aviso de período
+        while (elementoAlvo.lastChild && elementoAlvo.lastChild !== avisoPeriodo) {
+            elementoAlvo.removeChild(elementoAlvo.lastChild);
+        }
+    } else {
+        elementoAlvo.innerHTML = ""; 
+    }
+
     if (lista.length === 0) {
-        elementoAlvo.innerHTML = `<p class="placeholder-text">${msgVazio}</p>`;
+        const p = document.createElement("p");
+        p.className = "empty-state";
+        p.innerHTML = `<i class="ph-duotone ph-calendar-x"></i> ${msgVazio}`;
+        elementoAlvo.appendChild(p);
         return;
     }
 
     const ul = document.createElement("ul");
     lista.forEach(p => {
         const li = document.createElement("li");
-        const dataObj = new Date(p.dataNascimento);
-        const dia = String(dataObj.getUTCDate()).padStart(2, '0');
-        const mes = String(dataObj.getUTCMonth() + 1).padStart(2, '0');
+        
+        // Formatação visual da data
+        const partes = p.dataNascimento.split('T')[0].split('-');
+        const dia = partes[2];
+        const mes = partes[1];
+        
         const cepTexto = p.cep ? ` - CEP: ${p.cep}` : "";
         
         const btnDelete = `<button class="btn-delete" onclick="excluirPessoa('${p.id}', '${p.nome}')">🗑️ Excluir</button>`;
 
         li.innerHTML = `
             <div style="width: 100%;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                     <div>
-                        <strong style="font-size: 1.1rem; color: #1e3a8a;">${p.nome}</strong>
-                        ${btnDelete} 
+                        <strong style="font-size: 1.05rem; color: var(--primary-dark);">${p.nome}</strong>
+                        <div style="display:inline-block; margin-left: 8px;">${btnDelete}</div>
                     </div>
-                    <span style="background: #eff6ff; color: #2563eb; padding: 3px 8px; border-radius: 12px; font-weight: bold; font-size: 0.9rem;">
+                    <span style="background: var(--primary-light); color: var(--primary); padding: 4px 10px; border-radius: 20px; font-weight: 700; font-size: 0.85rem;">
                         🎂 ${dia}/${mes}
                     </span>
                 </div>
-                <div style="margin-bottom: 3px; color: #444;">📞 ${p.telefone || "Sem telefone"}</div>
-                <div style="font-size: 0.9rem; color: #666;">🏠 ${p.endereco || "Endereço não informado"}${cepTexto}</div>
+                
+                <div style="margin-bottom: 4px; color: var(--text-muted); font-size: 0.9rem; display: flex; align-items: center; gap: 5px;">
+                    <i class="ph-fill ph-phone" style="color: var(--accent)"></i> ${p.telefone || "Sem telefone"}
+                </div>
+                
+                <div style="font-size: 0.85rem; color: #9ca3af; display: flex; align-items: flex-start; gap: 5px;">
+                    <i class="ph-fill ph-map-pin" style="color: #9ca3af; margin-top: 2px;"></i> 
+                    <span>${p.endereco || "Sem endereço"}${cepTexto}</span>
+                </div>
             </div>
         `;
         ul.appendChild(li);
@@ -372,13 +373,12 @@ function renderizarLista(lista, elementoAlvo, msgVazio) {
 function abrirTab(evt, tabNome) {
     const conteudos = document.getElementsByClassName("tab-content");
     for (let i = 0; i < conteudos.length; i++) {
-        conteudos[i].style.display = "none"; conteudos[i].classList.remove("active");
+        conteudos[i].classList.remove("active");
     }
     const tabs = document.getElementsByClassName("tab-link");
     for (let i = 0; i < tabs.length; i++) {
-        tabs[i].className = tabs[i].className.replace(" active", "");
+        tabs[i].classList.remove("active");
     }
-    document.getElementById(tabNome).style.display = "block";
     document.getElementById(tabNome).classList.add("active");
-    if (evt && evt.currentTarget) evt.currentTarget.className += " active";
+    if (evt && evt.currentTarget) evt.currentTarget.classList.add("active");
 }
