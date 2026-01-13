@@ -9,61 +9,39 @@ let pessoas = [];
 // INICIALIZAÇÃO
 // =================================================================
 window.onload = function() {
-    carregarDados(); // Busca direto da nuvem
-    
-    // Seleciona aba inicial visualmente
+    carregarDados();
     const abaInicial = document.querySelector(".tab-link");
     if(abaInicial) abaInicial.click();
 };
 
-// --- FUNÇÃO PRINCIPAL: Carregar da API ---
 function carregarDados() {
     console.log("☁️ Buscando dados atualizados...");
-    
-    // Feedback visual no botão de atualizar (se existir)
     const btnRefresh = document.getElementById("btnRelatorio");
-    if(btnRefresh) {
-        if(btnRefresh.innerText.includes("Atualizar")) btnRefresh.innerText = "Carregando...";
-    }
+    if(btnRefresh && btnRefresh.innerText.includes("Atualizar")) btnRefresh.innerText = "Carregando...";
 
     fetch(API_URL)
         .then(res => res.json())
         .then(data => {
-            // ORDENAÇÃO CRONOLÓGICA (Janeiro a Dezembro)
             pessoas = data.sort((a, b) => {
                 if (!a.dataNascimento || !b.dataNascimento) return 0;
-                
-                // Converte para data segura
-                // (Usamos UTC ou split para garantir a ordem correta independente do ano)
                 const partesA = a.dataNascimento.split('T')[0].split('-');
                 const partesB = b.dataNascimento.split('T')[0].split('-');
-                
-                const mesA = parseInt(partesA[1]);
-                const diaA = parseInt(partesA[2]);
-                const mesB = parseInt(partesB[1]);
-                const diaB = parseInt(partesB[2]);
-
-                // Compara Mês primeiro, depois Dia
+                const mesA = parseInt(partesA[1]); const diaA = parseInt(partesA[2]);
+                const mesB = parseInt(partesB[1]); const diaB = parseInt(partesB[2]);
                 if (mesA !== mesB) return mesA - mesB;
                 return diaA - diaB;
             });
-
             console.log("✅ Dados recebidos:", pessoas.length);
-            
-            // Se estiver com a aba de relatório aberta, atualiza ela automaticamente
             const divRelatorio = document.getElementById("resRelatorio");
             if(divRelatorio && divRelatorio.innerHTML !== "" && !divRelatorio.innerHTML.includes("placeholder-text")) {
                  document.getElementById("btnRelatorio").click();
             }
         })
         .catch(err => {
-            console.error("❌ Erro de conexão", err);
-            if (typeof Swal !== 'undefined') {
-                Swal.fire('Erro', 'Não foi possível carregar a lista. Verifique sua internet.', 'error');
-            }
+            console.error(err);
+            if (typeof Swal !== 'undefined') Swal.fire('Erro', 'Erro de conexão.', 'error');
         })
         .finally(() => {
-             // Restaura texto do botão
              if(btnRefresh && btnRefresh.innerText === "Carregando...") {
                  btnRefresh.innerHTML = '<i class="ph ph-arrows-clockwise"></i> Atualizar Tela';
              }
@@ -71,7 +49,7 @@ function carregarDados() {
 }
 
 // =================================================================
-// 1. SALVAR (CREATE)
+// 1. SALVAR (CREATE) - COM BAIRRO
 // =================================================================
 document.getElementById("formCadastro").addEventListener("submit", function (e) {
     e.preventDefault();
@@ -82,9 +60,11 @@ document.getElementById("formCadastro").addEventListener("submit", function (e) 
     btn.innerText = "Salvando...";
     btn.disabled = true;
 
+    // --- CAPTURA DOS DADOS ---
     const pessoa = {
         nome: form.nome.value,
         endereco: form.endereco.value,
+        bairro: form.bairro.value, // <--- NOVO CAMPO
         cep: form.cep.value,
         telefone: form.telefone.value,
         dataNascimento: form.data_nascimento.value
@@ -104,7 +84,7 @@ document.getElementById("formCadastro").addEventListener("submit", function (e) 
             confirmButtonColor: '#7c3aed'
         });
         form.reset();
-        carregarDados(); // Recarrega a lista oficial
+        carregarDados();
     })
     .catch(err => Swal.fire('Erro', 'Erro ao salvar: ' + err, 'error'))
     .finally(() => {
@@ -129,7 +109,6 @@ function excluirPessoa(id, nome) {
     }).then((result) => {
         if (result.isConfirmed) {
             Swal.fire({ title: 'Aguarde...', didOpen: () => { Swal.showLoading() } });
-
             fetch(API_URL, {
                 method: "POST",
                 headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -139,12 +118,9 @@ function excluirPessoa(id, nome) {
             .then(data => {
                 if (data.status === "excluido") {
                     Swal.fire('Excluído!', 'O registro foi apagado.', 'success');
-                    
-                    // Limpa telas para não mostrar dados velhos
-                    document.getElementById("resPesquisa").innerHTML = `<div class="empty-state"><i class="ph-duotone ph-magnifying-glass"></i><p>Pesquise novamente para atualizar.</p></div>`;
+                    document.getElementById("resPesquisa").innerHTML = `<div class="empty-state"><i class="ph-duotone ph-magnifying-glass"></i><p>Pesquise novamente.</p></div>`;
                     document.getElementById("resRelatorio").innerHTML = "";
-                    
-                    carregarDados(); // Busca lista nova
+                    carregarDados();
                 } else {
                     Swal.fire('Erro', 'Não foi possível excluir.', 'error');
                 }
@@ -162,7 +138,6 @@ document.getElementById("btnPesquisar").addEventListener("click", function() {
     const dataInput = document.getElementById("dataPesquisa").value;
     const divResultado = document.getElementById("resPesquisa");
     
-    // Se vazio, mostra todos (ordenados)
     if (!nomeInput && !dataInput) {
         renderizarLista(pessoas, divResultado, "Nenhum cadastro encontrado.");
         return;
@@ -176,9 +151,7 @@ document.getElementById("btnPesquisar").addEventListener("click", function() {
     
     const encontrados = pessoas.filter(p => {
         if (!p.dataNascimento) return false;
-        let bateuNome = true;
-        let bateuData = true;
-
+        let bateuNome = true; let bateuData = true;
         if (nomeInput) bateuNome = p.nome.toLowerCase().includes(nomeInput);
         if (dataInput) {
             const dataString = p.dataNascimento.substring(0, 10);
@@ -191,59 +164,38 @@ document.getElementById("btnPesquisar").addEventListener("click", function() {
 });
 
 // =================================================================
-// 4. RELATÓRIO SEMANAL (COM PERÍODO VISÍVEL)
+// 4. RELATÓRIO SEMANAL
 // =================================================================
 document.getElementById("btnRelatorio").addEventListener("click", function() {
     const divResultado = document.getElementById("resRelatorio");
-    
-    // Limpa visualmente antes de começar
     divResultado.innerHTML = "";
     
-    const hoje = new Date(); 
-    hoje.setHours(0,0,0,0);
-    
-    // INTERVALO: Daqui a 7 dias -> até -> Daqui a 14 dias
-    const dataInicio = new Date(hoje); 
-    dataInicio.setDate(hoje.getDate() + 7);
-    dataInicio.setHours(0,0,0,0);
-    
-    const dataFim = new Date(hoje); 
-    dataFim.setDate(hoje.getDate() + 14); 
-    dataFim.setHours(23,59,59,999);
+    const hoje = new Date(); hoje.setHours(0,0,0,0);
+    const dataInicio = new Date(hoje); dataInicio.setDate(hoje.getDate() + 7); dataInicio.setHours(0,0,0,0);
+    const dataFim = new Date(hoje); dataFim.setDate(hoje.getDate() + 14); dataFim.setHours(23,59,59,999);
 
     const aniversariantes = pessoas.filter(p => {
         if (!p.dataNascimento) return false;
-        
-        // Parse manual da data para evitar fuso horário
         const partes = p.dataNascimento.split('T')[0].split('-');
-        const mesNasc = parseInt(partes[1]) - 1; 
-        const diaNasc = parseInt(partes[2]);
-        
+        const mesNasc = parseInt(partes[1]) - 1; const diaNasc = parseInt(partes[2]);
         const aniverEsteAno = new Date(dataInicio.getFullYear(), mesNasc, diaNasc);
         aniverEsteAno.setHours(12,0,0,0); 
-
-        // Ajuste virada de ano
         if (aniverEsteAno < dataInicio && dataInicio.getMonth() === 11 && mesNasc === 0) {
             aniverEsteAno.setFullYear(dataInicio.getFullYear() + 1);
         }
-
         return aniverEsteAno >= dataInicio && aniverEsteAno <= dataFim;
     });
 
-    // Ordenação interna do relatório
     aniversariantes.sort((a,b) => {
-         const dA = new Date(a.dataNascimento); 
-         const dB = new Date(b.dataNascimento);
+         const dA = new Date(a.dataNascimento); const dB = new Date(b.dataNascimento);
          return (dA.getUTCMonth() - dB.getUTCMonth()) || (dA.getUTCDate() - dB.getUTCDate());
     });
 
-    // Texto do Período
     const diaIni = String(dataInicio.getDate()).padStart(2,'0');
     const mesIni = String(dataInicio.getMonth()+1).padStart(2,'0');
     const diaFim = String(dataFim.getDate()).padStart(2,'0');
     const mesFim = String(dataFim.getMonth()+1).padStart(2,'0');
 
-    // Cria o aviso do período
     const periodoDiv = document.createElement("div");
     periodoDiv.style.marginBottom = "15px";
     periodoDiv.style.padding = "10px";
@@ -255,40 +207,31 @@ document.getElementById("btnRelatorio").addEventListener("click", function() {
     periodoDiv.style.fontWeight = "600";
     periodoDiv.style.border = "1px solid #e0e7ff";
     periodoDiv.innerHTML = `📅 Próxima semana: <strong>${diaIni}/${mesIni}</strong> a <strong>${diaFim}/${mesFim}</strong>`;
-    
     divResultado.appendChild(periodoDiv);
 
     renderizarLista(aniversariantes, divResultado, "Ninguém faz aniversário neste período.");
 });
 
 // =================================================================
-// 5. EMAIL MANUAL
+// 5. EMAIL
 // =================================================================
 document.getElementById("btnEnviarEmail").addEventListener("click", function() {
     const btn = document.getElementById("btnEnviarEmail");
-    
     Swal.fire({
-        title: 'Enviar e-mail?',
-        text: "Disparar aviso da PRÓXIMA semana agora?",
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#10b981',
-        cancelButtonColor: '#ef4444',
-        confirmButtonText: 'Sim, enviar'
+        title: 'Enviar e-mail?', text: "Disparar aviso da PRÓXIMA semana agora?", icon: 'question',
+        showCancelButton: true, confirmButtonColor: '#10b981', cancelButtonColor: '#ef4444', confirmButtonText: 'Sim'
     }).then((result) => {
         if (result.isConfirmed) {
             btn.disabled = true;
             Swal.fire({ title: 'Enviando...', didOpen: () => { Swal.showLoading() } });
-
             fetch(API_URL, {
-                method: "POST",
-                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },
                 body: JSON.stringify({ action: "enviar_email" }) 
             })
             .then(res => res.json())
             .then(data => {
                 if (data.status === "enviado") Swal.fire('Sucesso!', `Enviado para ${data.qtd} pessoas.`, 'success');
-                else if (data.status === "vazio") Swal.fire('Vazio', 'Sem aniversariantes na próxima semana.', 'info');
+                else if (data.status === "vazio") Swal.fire('Vazio', 'Sem aniversariantes.', 'info');
                 else Swal.fire('Erro', 'Resposta desconhecida.', 'warning');
             })
             .catch(err => Swal.fire('Erro', 'Falha na conexão.', 'error'))
@@ -298,7 +241,7 @@ document.getElementById("btnEnviarEmail").addEventListener("click", function() {
 });
 
 // =================================================================
-// 6. UI & UTILS
+// 6. UI & UTILS (ATUALIZADO PARA EXIBIR BAIRRO)
 // =================================================================
 const inputTelefone = document.querySelector('input[name="telefone"]');
 if (inputTelefone) {
@@ -310,11 +253,8 @@ if (inputTelefone) {
 }
 
 function renderizarLista(lista, elementoAlvo, msgVazio) {
-    // Se já tiver o aviso de período, não apaga ele, só adiciona a lista depois
     const avisoPeriodo = elementoAlvo.querySelector("div[style*='background']");
-    
     if (avisoPeriodo) {
-        // Remove tudo que NÃO é o aviso de período
         while (elementoAlvo.lastChild && elementoAlvo.lastChild !== avisoPeriodo) {
             elementoAlvo.removeChild(elementoAlvo.lastChild);
         }
@@ -333,14 +273,14 @@ function renderizarLista(lista, elementoAlvo, msgVazio) {
     const ul = document.createElement("ul");
     lista.forEach(p => {
         const li = document.createElement("li");
-        
-        // Formatação visual da data
         const partes = p.dataNascimento.split('T')[0].split('-');
-        const dia = partes[2];
-        const mes = partes[1];
+        const dia = partes[2]; const mes = partes[1];
         
-        const cepTexto = p.cep ? ` - CEP: ${p.cep}` : "";
-        
+        // --- FORMATAÇÃO DO ENDEREÇO + BAIRRO + CEP ---
+        let enderecoCompleto = p.endereco || "Endereço não informado";
+        if (p.bairro) enderecoCompleto += ` - ${p.bairro}`; // Adiciona Bairro
+        if (p.cep) enderecoCompleto += ` (CEP: ${p.cep})`;
+
         const btnDelete = `<button class="btn-delete" onclick="excluirPessoa('${p.id}', '${p.nome}')">🗑️ Excluir</button>`;
 
         li.innerHTML = `
@@ -361,24 +301,11 @@ function renderizarLista(lista, elementoAlvo, msgVazio) {
                 
                 <div style="font-size: 0.85rem; color: #9ca3af; display: flex; align-items: flex-start; gap: 5px;">
                     <i class="ph-fill ph-map-pin" style="color: #9ca3af; margin-top: 2px;"></i> 
-                    <span>${p.endereco || "Sem endereço"}${cepTexto}</span>
+                    <span>${enderecoCompleto}</span>
                 </div>
             </div>
         `;
         ul.appendChild(li);
     });
     elementoAlvo.appendChild(ul);
-}
-
-function abrirTab(evt, tabNome) {
-    const conteudos = document.getElementsByClassName("tab-content");
-    for (let i = 0; i < conteudos.length; i++) {
-        conteudos[i].classList.remove("active");
-    }
-    const tabs = document.getElementsByClassName("tab-link");
-    for (let i = 0; i < tabs.length; i++) {
-        tabs[i].classList.remove("active");
-    }
-    document.getElementById(tabNome).classList.add("active");
-    if (evt && evt.currentTarget) evt.currentTarget.classList.add("active");
 }
