@@ -1,21 +1,33 @@
+/* =========================================
+   VARIAVEIS E CORES (OPÇÃO A - PARTY VIBE)
+   ========================================= */
 :root {
-    /* Gradiente vibrante */
+    /* Cores Principais - Gradiente Vibrante */
     --primary: #7c3aed;       /* Roxo Violeta */
     --primary-dark: #6d28d9;
     --primary-light: #f3e8ff;
+    
     --accent: #db2777;        /* Rosa Pink */
     --accent-dark: #be185d;
     
-    /* O resto mantém igual... */
-    --bg-body: #f3f4f6;
+    /* Estrutura */
+    --bg-body: #f3f4f6;       /* Cinza muito claro */
     --bg-card: #ffffff;
-    --text-main: #1f2937;
-    --text-muted: #6b7280;
+    
+    /* Tipografia */
+    --text-main: #1f2937;     /* Cinza Chumbo */
+    --text-muted: #6b7280;    /* Cinza Médio */
     --border: #e5e7eb;
+    
+    /* Efeitos */
+    /* Sombra colorida e suave (Glow effect) */
     --shadow: 0 10px 25px -5px rgba(124, 58, 237, 0.15), 0 8px 10px -6px rgba(124, 58, 237, 0.1);
-    --radius: 20px;
+    --radius: 20px;           /* Bordas bem arredondadas */
 }
 
+/* =========================================
+   RESET E ESTRUTURA GLOBAL
+   ========================================= */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -32,7 +44,7 @@ body {
     min-height: 100vh;
 }
 
-/* Container que simula App Mobile */
+/* Container que simula um App Mobile no Desktop */
 .mobile-wrapper {
     width: 100%;
     max-width: 500px;
@@ -41,14 +53,27 @@ body {
     display: flex;
     flex-direction: column;
     position: relative;
+    box-shadow: 0 0 40px rgba(0,0,0,0.05); /* Sombra externa no desktop */
 }
 
-/* --- HEADER --- */
+/* =========================================
+   HEADER (CABEÇALHO COM GRADIENTE)
+   ========================================= */
 header {
-    background: var(--primary); /* Sua cor original */
-    /* Padrão de bolinhas sutis */
-    background-image: radial-gradient(rgba(255,255,255,0.2) 2px, transparent 2px);
-    background-size: 20px 20px;
+    /* O Gradiente Roxo -> Rosa */
+    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    
+    /* Textura de bolinhas sutil (O "Pulo do Gato") */
+    background-image: radial-gradient(rgba(255,255,255,0.15) 2px, transparent 2px),
+                      linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    background-size: 20px 20px, 100% 100%;
+    
+    color: white;
+    padding: 40px 20px 80px 20px; /* Padding extra embaixo para o card sobrepor */
+    border-bottom-left-radius: 30px;
+    border-bottom-right-radius: 30px;
+    position: relative;
+    z-index: 1;
 }
 
 .header-content {
@@ -58,45 +83,57 @@ header {
 }
 
 .icon-bg {
-    background: rgba(255,255,255,0.2);
-    width: 50px;
-    height: 50px;
+    background: rgba(255,255,255,0.25);
+    backdrop-filter: blur(5px);
+    width: 54px;
+    height: 54px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 12px;
-    font-size: 24px;
+    border-radius: 16px;
+    font-size: 26px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
 header h1 {
     font-family: 'Poppins', sans-serif;
-    font-size: 1.5rem;
-    font-weight: 600;
+    font-size: 1.6rem;
+    font-weight: 700;
+    line-height: 1.2;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 header p {
     font-size: 0.9rem;
-    opacity: 0.9;
+    opacity: 0.95;
+    font-weight: 400;
 }
 
-/* --- MAIN CARD --- */
+/* =========================================
+   CARD PRINCIPAL (CORPO DO APP)
+   ========================================= */
 .main-card {
     background: var(--bg-card);
-    margin: -50px 20px 20px 20px; /* Margem negativa para subir no header */
+    margin: -50px 20px 30px 20px; /* Sobe por cima do header */
     border-radius: var(--radius);
     box-shadow: var(--shadow);
     overflow: hidden;
     flex: 1;
     display: flex;
     flex-direction: column;
+    position: relative;
+    z-index: 2;
 }
 
-/* --- NAVEGAÇÃO (ABAS) --- */
+/* =========================================
+   NAVEGAÇÃO (ABAS / TABS)
+   ========================================= */
 .tabs-container {
     display: flex;
-    background: #f9fafb;
-    padding: 5px;
+    background: #f8fafc;
+    padding: 6px;
     border-bottom: 1px solid var(--border);
+    gap: 5px;
 }
 
 .tab-link {
@@ -108,72 +145,81 @@ header p {
     font-family: 'Poppins', sans-serif;
     font-weight: 500;
     color: var(--text-muted);
-    border-radius: 10px;
-    transition: 0.3s;
+    border-radius: 14px;
+    transition: all 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 6px;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
 }
 
 .tab-link i {
-    font-size: 1.2rem;
+    font-size: 1.3rem;
+    margin-bottom: 2px;
 }
 
 .tab-link:hover {
-    background: rgba(0,0,0,0.03);
+    background: rgba(124, 58, 237, 0.05); /* Roxo bem clarinho */
+    color: var(--primary);
 }
 
 .tab-link.active {
     background: white;
     color: var(--primary);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    font-weight: 600;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
+    font-weight: 700;
 }
 
-/* --- CONTEÚDO --- */
+/* =========================================
+   ÁREA DE CONTEÚDO
+   ========================================= */
 .content-area {
     padding: 25px;
+    flex: 1;
 }
 
 .tab-content {
     display: none;
-    animation: fadeIn 0.4s ease;
+    animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .tab-content.active {
     display: block;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(15px); }
     to { opacity: 1; transform: translateY(0); }
+}
+
+.section-header {
+    margin-bottom: 25px;
 }
 
 .section-header h2 {
     font-family: 'Poppins', sans-serif;
     color: var(--primary);
-    font-size: 1.3rem;
+    font-size: 1.4rem;
     margin-bottom: 5px;
 }
 
 .section-header p {
     color: var(--text-muted);
     font-size: 0.9rem;
-    margin-bottom: 25px;
 }
 
-/* --- FORMULÁRIOS & INPUTS --- */
+/* =========================================
+   FORMULÁRIOS & INPUTS
+   ========================================= */
 .input-group {
-    margin-bottom: 15px;
+    margin-bottom: 18px;
 }
 
 .row-2 {
     display: flex;
     gap: 15px;
 }
-
 .row-2 .input-group {
     flex: 1;
 }
@@ -183,45 +229,46 @@ label {
     font-size: 0.85rem;
     font-weight: 600;
     color: #374151;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
+    margin-left: 2px;
 }
 
 .input-wrapper {
     position: relative;
 }
 
+/* Ícone dentro do input */
 .input-wrapper i {
     position: absolute;
-    left: 14px;
+    left: 16px;
     top: 50%;
     transform: translateY(-50%);
     color: var(--text-muted);
-    font-size: 1.1rem;
+    font-size: 1.2rem;
+    pointer-events: none;
+    transition: color 0.2s;
 }
 
 input {
     width: 100%;
-    padding: 12px 12px 12px 42px; /* Espaço para o ícone */
-    border: 1px solid var(--border);
-    border-radius: 10px;
+    padding: 14px 14px 14px 48px; /* Espaço para o ícone */
+    border: 2px solid #f1f5f9;
+    border-radius: 14px;
     font-family: 'Inter', sans-serif;
     font-size: 0.95rem;
-    background: #f9fafb;
-    transition: all 0.2s;
+    background: #f8fafc;
+    color: var(--text-main);
+    transition: all 0.2s ease;
 }
 
-/* Inputs sem ícone (tipo data) */
+/* Correção para inputs sem ícone (Date ou placeholder vazio) */
 input[type="date"], input:not([placeholder]) {
-    padding-left: 12px;
+    padding-left: 14px;
 }
-.input-wrapper input:not([placeholder]) + i {
-    display: none; /* Esconde ícone se necessário ajuste fino */
-}
-/* Correção para inputs que realmente não têm ícone */
+/* Se não tiver tag <i>, remove o padding extra */
 .input-wrapper:not(:has(i)) input {
-    padding-left: 12px;
+    padding-left: 14px;
 }
-
 
 input:focus {
     outline: none;
@@ -230,75 +277,104 @@ input:focus {
     box-shadow: 0 0 0 4px var(--primary-light);
 }
 
-/* --- BOTÕES --- */
+input:focus + i {
+    color: var(--primary); /* Pinta o ícone quando foca */
+}
+
+/* =========================================
+   BOTÕES
+   ========================================= */
 button {
     width: 100%;
-    padding: 14px;
+    padding: 16px;
     border: none;
-    border-radius: 12px;
+    border-radius: 14px;
     font-weight: 600;
     font-family: 'Poppins', sans-serif;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    transition: transform 0.1s, opacity 0.2s;
+    gap: 10px;
+    transition: transform 0.1s, opacity 0.2s, box-shadow 0.2s;
     font-size: 1rem;
+    letter-spacing: 0.3px;
 }
 
 button:active {
     transform: scale(0.98);
 }
 
+/* Botão Principal (Roxo) */
 .btn-primary {
     background: var(--primary);
     color: white;
-    margin-top: 10px;
-    box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2);
+    margin-top: 15px;
+    box-shadow: 0 8px 20px -6px rgba(124, 58, 237, 0.5);
 }
-.btn-primary:hover { background: var(--primary-dark); }
+.btn-primary:hover { 
+    background: var(--primary-dark);
+    box-shadow: 0 10px 25px -5px rgba(124, 58, 237, 0.6);
+}
 
+/* Botão Secundário (Outline) */
 .btn-secondary {
     background: white;
     color: var(--primary);
     border: 2px solid var(--primary-light);
+    margin-top: 5px;
 }
-.btn-secondary:hover { background: var(--primary-light); }
+.btn-secondary:hover { 
+    background: var(--primary-light);
+    border-color: var(--primary-light);
+}
 
+/* Botão de Ação/Email (Rosa) */
 .btn-accent {
     background: var(--accent);
     color: white;
-    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
+    box-shadow: 0 8px 20px -6px rgba(219, 39, 119, 0.4);
 }
-.btn-accent:hover { background: var(--accent-dark); }
+.btn-accent:hover { 
+    background: var(--accent-dark);
+    box-shadow: 0 10px 25px -5px rgba(219, 39, 119, 0.5);
+}
 
+/* Botão de Excluir (Pequeno) */
 .btn-delete {
-    padding: 6px 10px;
+    padding: 6px 12px;
+    width: auto;
     border-radius: 8px;
     font-size: 0.75rem;
-    background: #fee2e2;
+    background: #fef2f2;
     color: #ef4444;
-    border: 1px solid #fecaca;
+    border: 1px solid #fee2e2;
+    box-shadow: none;
 }
 .btn-delete:hover {
     background: #ef4444;
     color: white;
+    border-color: #ef4444;
 }
 
-/* --- RESULTADOS --- */
+/* =========================================
+   RESULTADOS E LISTAS
+   ========================================= */
 .divider {
     text-align: center;
-    margin: 15px 0;
+    margin: 20px 0;
     position: relative;
 }
 .divider span {
-    background: white;
-    padding: 0 10px;
+    background: var(--bg-card);
+    padding: 0 15px;
     color: var(--text-muted);
     font-size: 0.8rem;
+    font-weight: 500;
     position: relative;
     z-index: 1;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 .divider::before {
     content: "";
@@ -312,58 +388,65 @@ button:active {
 
 .actions-row {
     display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
+    gap: 12px;
+    margin-bottom: 25px;
 }
 
 .resultado-container ul {
     list-style: none;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
+    padding-bottom: 20px;
 }
 
 .resultado-container li {
     background: white;
     border: 1px solid var(--border);
-    padding: 15px;
-    border-radius: 12px;
+    padding: 18px;
+    border-radius: 16px;
     display: flex;
     flex-direction: column;
     gap: 8px;
-    transition: 0.2s;
+    transition: all 0.2s;
+    position: relative;
 }
 
 .resultado-container li:hover {
     border-color: var(--primary);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px -10px rgba(0,0,0,0.08);
 }
 
 /* Estado vazio */
 .empty-state {
     text-align: center;
     color: var(--text-muted);
-    padding: 30px 0;
+    padding: 40px 0;
+    opacity: 0.7;
 }
 .empty-state i {
-    font-size: 3rem;
-    color: #d1d5db;
-    margin-bottom: 10px;
+    font-size: 3.5rem;
+    color: #cbd5e1;
+    margin-bottom: 15px;
     display: block;
 }
 
-/* --- FOOTER --- */
+/* Placeholder de texto */
+.placeholder-text {
+    text-align: center;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-top: 20px;
+}
+
+/* =========================================
+   FOOTER
+   ========================================= */
 footer {
     text-align: center;
     padding: 20px;
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     color: var(--text-muted);
+    font-weight: 500;
 }
-
-
-
-
-
-
-
