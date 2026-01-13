@@ -203,80 +203,87 @@ document.getElementById("btnPesquisar").addEventListener("click", function() {
 });
 
 // =================================================================
-// 4. RELATÓRIO SEMANAL (ATUALIZADO COM VISUALIZAÇÃO DE DATAS)
+// 4. RELATÓRIO SEMANAL (COM LIMPEZA AUTOMÁTICA)
 // =================================================================
 document.getElementById("btnRelatorio").addEventListener("click", function() {
     const divResultado = document.getElementById("resRelatorio");
-    const hoje = new Date(); 
-    hoje.setHours(0,0,0,0); // Zera horas para evitar erros de fuso
     
-    // --- CONFIGURAÇÃO DO INTERVALO ---
-    // Início: Daqui a 7 dias
+    // 1. LIMPEZA TOTAL ANTES DE COMEÇAR (O Segredo para não duplicar)
+    divResultado.innerHTML = ""; 
+    divResultado.style.opacity = "0"; // Efeito visual de recarregar
+
+    const hoje = new Date(); 
+    hoje.setHours(0,0,0,0);
+    
+    // --- DEFINIÇÃO DO PERÍODO (PRÓXIMA SEMANA) ---
+    // Começa a contar daqui a 7 dias
     const dataInicio = new Date(hoje); 
     dataInicio.setDate(hoje.getDate() + 7);
     dataInicio.setHours(0,0,0,0);
     
-    // Fim: Daqui a 14 dias
+    // Termina daqui a 14 dias
     const dataFim = new Date(hoje); 
     dataFim.setDate(hoje.getDate() + 14); 
-    dataFim.setHours(23,59,59,999); // Final do dia
+    dataFim.setHours(23,59,59,999);
 
     // Filtra a lista
     const aniversariantes = pessoas.filter(p => {
         if (!p.dataNascimento) return false;
         
-        // Converte a string de data (YYYY-MM-DD) para Objeto Date
-        // Usamos split para garantir que pegamos dia/mês corretos independente do fuso
+        // Pega dia e mês da data original sem sofrer com fuso horário
         const partes = p.dataNascimento.split('T')[0].split('-');
-        const anoNasc = parseInt(partes[0]);
-        const mesNasc = parseInt(partes[1]) - 1; // Mês no JS começa em 0
+        const mesNasc = parseInt(partes[1]) - 1; // Mês 0-11
         const diaNasc = parseInt(partes[2]);
         
         // Cria aniversário neste ano
         const aniverEsteAno = new Date(dataInicio.getFullYear(), mesNasc, diaNasc);
-        aniverEsteAno.setHours(12,0,0,0); // Meio dia para segurança de fuso
+        aniverEsteAno.setHours(12,0,0,0); // Meio dia para segurança
 
-        // Ajuste para virada de ano (Ex: Dezembro olhando para Janeiro)
+        // Ajuste de Ano Novo (Se estamos em Dez e o niver é Jan)
         if (aniverEsteAno < dataInicio && dataInicio.getMonth() === 11 && mesNasc === 0) {
             aniverEsteAno.setFullYear(dataInicio.getFullYear() + 1);
         }
 
-        // Verifica se está dentro do período
+        // A Lógica Chave: Só entra se for MAIOR ou IGUAL ao inicio E MENOR ou IGUAL ao fim
         return aniverEsteAno >= dataInicio && aniverEsteAno <= dataFim;
     });
 
-    // Ordenação
+    // Ordena por dia
     aniversariantes.sort((a,b) => {
          const dA = new Date(a.dataNascimento); 
          const dB = new Date(b.dataNascimento);
          return (dA.getUTCMonth() - dB.getUTCMonth()) || (dA.getUTCDate() - dB.getUTCDate());
     });
 
-    // Formata as datas para exibir no título
+    // Formata datas para o título
     const diaIni = String(dataInicio.getDate()).padStart(2,'0');
     const mesIni = String(dataInicio.getMonth()+1).padStart(2,'0');
     const diaFim = String(dataFim.getDate()).padStart(2,'0');
     const mesFim = String(dataFim.getMonth()+1).padStart(2,'0');
 
-    // --- EXIBIÇÃO ---
-    divResultado.innerHTML = ""; // Limpa anterior
-
-    // Adiciona um título informando o período (NOVIDADE)
+    // --- MONTAGEM DA TELA ---
+    
+    // Mostra o período exato (para você conferir se está certo)
     const periodoDiv = document.createElement("div");
     periodoDiv.style.marginBottom = "15px";
     periodoDiv.style.padding = "10px";
-    periodoDiv.style.background = "#eef2ff";
+    periodoDiv.style.background = "#eef2ff"; // Fundo roxo bem claro
     periodoDiv.style.borderRadius = "10px";
     periodoDiv.style.textAlign = "center";
-    periodoDiv.style.color = "#4f46e5";
+    periodoDiv.style.color = "#4f46e5"; // Texto roxo
     periodoDiv.style.fontSize = "0.9rem";
     periodoDiv.style.fontWeight = "600";
-    periodoDiv.innerHTML = `📅 Período: ${diaIni}/${mesIni} até ${diaFim}/${mesFim}`;
+    periodoDiv.style.border = "1px solid #e0e7ff";
+    periodoDiv.innerHTML = `📅 Buscando de <strong>${diaIni}/${mesIni}</strong> até <strong>${diaFim}/${mesFim}</strong>`;
+    
     divResultado.appendChild(periodoDiv);
 
-    renderizarLista(aniversariantes, divResultado, "Nenhum aniversariante neste período.");
-});
+    // Renderiza a lista ou aviso de vazio
+    renderizarLista(aniversariantes, divResultado, "Nenhum aniversariante encontrado neste período exato.");
 
+    // Fade In suave
+    setTimeout(() => divResultado.style.opacity = "1", 100);
+});
 // =================================================================
 // 5. EMAIL MANUAL
 // =================================================================
