@@ -1,17 +1,18 @@
 :root {
-    /* Gradiente vibrante */
-    --primary: #7c3aed;       /* Roxo Violeta */
-    --primary-dark: #6d28d9;
-    --primary-light: #f3e8ff;
-    --accent: #db2777;        /* Rosa Pink */
-    --accent-dark: #be185d;
-    --bg-body: #f3f4f6;
-    --bg-card: #ffffff;
-    --text-main: #1f2937;
-    --text-muted: #6b7280;
-    --border: #e5e7eb;
-    --shadow: 0 10px 25px -5px rgba(124, 58, 237, 0.15), 0 8px 10px -6px rgba(124, 58, 237, 0.1);
-    --radius: 20px;
+    --primary: #6366f1;       /* Indigo Neon */
+    --primary-dark: #4f46e5;
+    --primary-light: #312e81; /* Fundo escuro para botões secondary */
+    --accent: #10b981;        
+    --accent-dark: #059669;
+    
+    /* MUDANÇA RADICAL NO FUNDO */
+    --bg-body: #0f172a;       /* Azul quase preto */
+    --bg-card: #1e293b;       /* Cinza azulado escuro */
+    --text-main: #f8fafc;     /* Texto quase branco */
+    --text-muted: #94a3b8;    /* Texto cinza claro */
+    --border: #334155;        /* Bordas sutis */
+    --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+    --radius: 16px;
 }
 
 * {
@@ -359,5 +360,6 @@ footer {
     font-size: 0.8rem;
     color: var(--text-muted);
 }
+
 
 
