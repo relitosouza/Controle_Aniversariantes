@@ -1,10 +1,10 @@
 :root {
-    /* Paleta de Cores Moderna */
-    --primary: #4f46e5;       /* Indigo Vibrante */
-    --primary-dark: #4338ca;
-    --primary-light: #eef2ff;
-    --accent: #10b981;        /* Verde Esmeralda */
-    --accent-dark: #059669;
+    /* Gradiente vibrante */
+    --primary: #7c3aed;       /* Roxo Violeta */
+    --primary-dark: #6d28d9;
+    --primary-light: #f3e8ff;
+    --accent: #db2777;        /* Rosa Pink */
+    --accent-dark: #be185d;
     --bg-body: #f3f4f6;
     --bg-card: #ffffff;
     --text-main: #1f2937;
@@ -43,7 +43,7 @@ body {
 
 /* --- HEADER --- */
 header {
-    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    background: linear-gradient(135deg, #7c3aed 0%, #db2777 100%));
     color: white;
     padding: 40px 20px 80px 20px; /* Padding extra embaixo para o card subir */
     border-bottom-left-radius: 30px;
@@ -359,3 +359,4 @@ footer {
     font-size: 0.8rem;
     color: var(--text-muted);
 }
+
