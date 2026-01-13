@@ -45,11 +45,10 @@ body {
 
 /* --- HEADER --- */
 header {
-    background: linear-gradient(135deg, #7c3aed 0%, #db2777 100%);
-    color: white;
-    padding: 40px 20px 80px 20px; /* Padding extra embaixo para o card subir */
-    border-bottom-left-radius: 30px;
-    border-bottom-right-radius: 30px;
+    background: var(--primary); /* Sua cor original */
+    /* Padrão de bolinhas sutis */
+    background-image: radial-gradient(rgba(255,255,255,0.2) 2px, transparent 2px);
+    background-size: 20px 20px;
 }
 
 .header-content {
@@ -361,6 +360,7 @@ footer {
     font-size: 0.8rem;
     color: var(--text-muted);
 }
+
 
 
 
