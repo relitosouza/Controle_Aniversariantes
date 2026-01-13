@@ -203,38 +203,78 @@ document.getElementById("btnPesquisar").addEventListener("click", function() {
 });
 
 // =================================================================
-// 4. RELATÓRIO SEMANAL
+// 4. RELATÓRIO SEMANAL (ATUALIZADO COM VISUALIZAÇÃO DE DATAS)
 // =================================================================
 document.getElementById("btnRelatorio").addEventListener("click", function() {
     const divResultado = document.getElementById("resRelatorio");
-    const hoje = new Date(); hoje.setHours(0,0,0,0);
+    const hoje = new Date(); 
+    hoje.setHours(0,0,0,0); // Zera horas para evitar erros de fuso
     
-    const dataInicio = new Date(hoje); dataInicio.setDate(hoje.getDate() + 7);
-    const dataFim = new Date(hoje); dataFim.setDate(hoje.getDate() + 14); dataFim.setHours(23,59,59,999);
+    // --- CONFIGURAÇÃO DO INTERVALO ---
+    // Início: Daqui a 7 dias
+    const dataInicio = new Date(hoje); 
+    dataInicio.setDate(hoje.getDate() + 7);
+    dataInicio.setHours(0,0,0,0);
+    
+    // Fim: Daqui a 14 dias
+    const dataFim = new Date(hoje); 
+    dataFim.setDate(hoje.getDate() + 14); 
+    dataFim.setHours(23,59,59,999); // Final do dia
 
+    // Filtra a lista
     const aniversariantes = pessoas.filter(p => {
         if (!p.dataNascimento) return false;
-        const dataNasc = new Date(p.dataNascimento);
-        const aniverEsteAno = new Date(dataInicio.getFullYear(), dataNasc.getUTCMonth(), dataNasc.getUTCDate());
         
-        if (aniverEsteAno < dataInicio && dataInicio.getMonth() === 11 && dataNasc.getUTCMonth() === 0) {
+        // Converte a string de data (YYYY-MM-DD) para Objeto Date
+        // Usamos split para garantir que pegamos dia/mês corretos independente do fuso
+        const partes = p.dataNascimento.split('T')[0].split('-');
+        const anoNasc = parseInt(partes[0]);
+        const mesNasc = parseInt(partes[1]) - 1; // Mês no JS começa em 0
+        const diaNasc = parseInt(partes[2]);
+        
+        // Cria aniversário neste ano
+        const aniverEsteAno = new Date(dataInicio.getFullYear(), mesNasc, diaNasc);
+        aniverEsteAno.setHours(12,0,0,0); // Meio dia para segurança de fuso
+
+        // Ajuste para virada de ano (Ex: Dezembro olhando para Janeiro)
+        if (aniverEsteAno < dataInicio && dataInicio.getMonth() === 11 && mesNasc === 0) {
             aniverEsteAno.setFullYear(dataInicio.getFullYear() + 1);
         }
+
+        // Verifica se está dentro do período
         return aniverEsteAno >= dataInicio && aniverEsteAno <= dataFim;
     });
 
-    // Ordenação extra para garantir ordem de dias da semana
+    // Ordenação
     aniversariantes.sort((a,b) => {
-         const dA = new Date(a.dataNascimento); const dB = new Date(b.dataNascimento);
+         const dA = new Date(a.dataNascimento); 
+         const dB = new Date(b.dataNascimento);
          return (dA.getUTCMonth() - dB.getUTCMonth()) || (dA.getUTCDate() - dB.getUTCDate());
     });
 
+    // Formata as datas para exibir no título
     const diaIni = String(dataInicio.getDate()).padStart(2,'0');
     const mesIni = String(dataInicio.getMonth()+1).padStart(2,'0');
     const diaFim = String(dataFim.getDate()).padStart(2,'0');
     const mesFim = String(dataFim.getMonth()+1).padStart(2,'0');
 
-    renderizarLista(aniversariantes, divResultado, `Ninguém faz aniversário na próxima semana (${diaIni}/${mesIni} a ${diaFim}/${mesFim}).`);
+    // --- EXIBIÇÃO ---
+    divResultado.innerHTML = ""; // Limpa anterior
+
+    // Adiciona um título informando o período (NOVIDADE)
+    const periodoDiv = document.createElement("div");
+    periodoDiv.style.marginBottom = "15px";
+    periodoDiv.style.padding = "10px";
+    periodoDiv.style.background = "#eef2ff";
+    periodoDiv.style.borderRadius = "10px";
+    periodoDiv.style.textAlign = "center";
+    periodoDiv.style.color = "#4f46e5";
+    periodoDiv.style.fontSize = "0.9rem";
+    periodoDiv.style.fontWeight = "600";
+    periodoDiv.innerHTML = `📅 Período: ${diaIni}/${mesIni} até ${diaFim}/${mesFim}`;
+    divResultado.appendChild(periodoDiv);
+
+    renderizarLista(aniversariantes, divResultado, "Nenhum aniversariante neste período.");
 });
 
 // =================================================================
